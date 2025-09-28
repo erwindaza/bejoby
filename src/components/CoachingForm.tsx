@@ -99,7 +99,7 @@ export default function CoachingForm() {
       ) : (
         <PayPalButton
           amount="25.00"
-          onSuccess={(details) => handleVerifyPayment(details.id)}
+          onSuccess={(details) => handleVerifyPayment((details as { id: string }).id)}
           onError={() => setStatus("❌ Error en el pago.")}
         />
       )}
