@@ -5,19 +5,20 @@ import { useEffect } from "react";
 
 declare global {
   interface Window {
-    paypal: any;
+    paypal: {
+      Buttons: (config: any) => { render: (selector: string) => void };
+    };
   }
 }
 
 type PayPalButtonProps = {
-  amount: string; // monto en USD
-  onSuccess: (details: any) => void;
-  onError?: (err: any) => void;
+  amount: string;
+  onSuccess: (details: Record<string, unknown>) => void;
+  onError?: (err: unknown) => void;
 };
 
 export default function PayPalButton({ amount, onSuccess, onError }: PayPalButtonProps) {
   useEffect(() => {
-    // Cargar el script de PayPal si no existe
     const existingScript = document.getElementById("paypal-sdk");
     if (!existingScript) {
       const script = document.createElement("script");
@@ -29,36 +30,36 @@ export default function PayPalButton({ amount, onSuccess, onError }: PayPalButto
     } else {
       renderButton();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const renderButton = () => {
     if (!window.paypal) return;
-    window.paypal.Buttons({
-      style: {
-        layout: "vertical",
-        color: "gold",
-        shape: "rect",
-        label: "paypal",
-      },
-      createOrder: (_data: any, actions: any) => {
-        return actions.order.create({
-          purchase_units: [
-            {
-              amount: { value: amount },
-            },
-          ],
-        });
-      },
-      onApprove: async (_data: any, actions: any) => {
-        const details = await actions.order.capture();
-        onSuccess(details);
-      },
-      onError: (err: any) => {
-        console.error("PayPal Checkout Error", err);
-        if (onError) onError(err);
-      },
-    }).render("#paypal-button-container");
+    window.paypal
+      .Buttons({
+        style: {
+          layout: "vertical",
+          color: "gold",
+          shape: "rect",
+          label: "paypal",
+        },
+        createOrder: (_data: unknown, actions: any) => {
+          return actions.order.create({
+            purchase_units: [{ amount: { value: amount } }],
+          });
+        },
+        onApprove: async (_data: unknown, actions: any) => {
+          const details = await actions.order.capture();
+          onSuccess(details);
+        },
+        onError: (err: unknown) => {
+          console.error("PayPal Checkout Error", err);
+          if (onError) onError(err);
+        },
+      })
+      .render("#paypal-button-container");
   };
 
   return <div id="paypal-button-container" />;
 }
+
