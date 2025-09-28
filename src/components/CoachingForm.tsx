@@ -98,14 +98,24 @@ export default function CoachingForm() {
         </button>
       ) : (
         <PayPalButton
-          amount="25.00"
-          onSuccess={(details) => handleVerifyPayment((details as { id: string }).id)}
+          amount={25.0}
+          onSuccess={(details: { orderID: string }) =>
+            handleVerifyPayment(details.orderID)
+          }
           onError={() => setStatus("❌ Error en el pago.")}
         />
       )}
 
       {status && (
-        <p className="mt-4 text-center text-sm font-medium">{status}</p>
+        <p
+          className={`mt-4 text-center text-sm font-medium ${
+            status.startsWith("✅") || status.startsWith("💎")
+              ? "text-green-600"
+              : "text-red-600"
+          }`}
+        >
+          {status}
+        </p>
       )}
     </div>
   );
