@@ -1,36 +1,28 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# BeJoby
 
-## Getting Started
+BeJoby es una plataforma digital de **coaching profesional** y **empleabilidad** diseñada para ayudar a candidatos principiantes, egresados, semi-seniors y seniors a encontrar nuevas oportunidades laborales y potenciar sus habilidades.
 
-First, run the development server:
+## 🚀 Tecnologías
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Este proyecto está construido con:
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- [Next.js](https://nextjs.org/) – Framework de React para aplicaciones web modernas.
+- [TypeScript](https://www.typescriptlang.org/) – Tipado estático para mayor robustez.
+- [TailwindCSS](https://tailwindcss.com/) – Estilos rápidos y personalizables.
+- [Vercel](https://vercel.com/) – Hosting y despliegue continuo.
+- [Node.js](https://nodejs.org/) – Entorno de ejecución backend.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🌍 Entornos
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Producción** → [www.bejoby.com](https://www.bejoby.com)  
+- **Desarrollo (dev)** → [bejoby.vercel.app](https://bejoby.vercel.app)
 
-## Learn More
+Cada push a la rama `main` se despliega automáticamente en producción, mientras que los cambios en la rama `dev` se reflejan en el entorno de desarrollo.
 
-To learn more about Next.js, take a look at the following resources:
+## 📦 Instalación local
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Clonar el repositorio:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+   ```bash
+   git clone https://github.com/erwindaza/bejoby.git
+   cd bejoby
