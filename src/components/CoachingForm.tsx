@@ -19,9 +19,15 @@ export default function CoachingForm() {
         body: JSON.stringify({ name, email }),
       });
       const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Error en la conexión");
+      }
+
       setStatus(`✅ ${data.message}`);
-    } catch {
-      setStatus("❌ Error conectando con Coach Virtual.");
+    } catch (err) {
+      console.error("❌ Error en handleFreePlan:", err);
+      setStatus("❌ Error conectando con el Coach Virtual.");
     }
   };
 
@@ -39,7 +45,8 @@ export default function CoachingForm() {
       } else {
         setStatus("❌ El pago no se completó correctamente.");
       }
-    } catch {
+    } catch (err) {
+      console.error("❌ Error en handleVerifyPayment:", err);
       setStatus("❌ Error verificando el pago.");
     }
   };

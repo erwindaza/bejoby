@@ -1,28 +1,28 @@
+// src/app/api/coach/route.ts
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
-  const { name, email } = await req.json();
-
   try {
-    // Conexión a tu API Gemini Flash 2.5
-    const res = await fetch("https://api.gemini.com/v1/coach", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        user: name,
-        email,
-        model: "gemini-1.5-flash",
-        prompt: "Bienvenido a BeJoby Coach Virtual, tu asistente para coaching laboral.",
-      }),
-    });
+    const { name, email, prompt } = await req.json();
 
-    const data = await res.json();
-    return NextResponse.json({ message: data.reply || "Sesión iniciada." });
+    console.log("🤖 Conectando con Gemini:", { name, email, prompt });
+
+    // Aquí usamos tu clave de Gemini desde .env.local
+    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+    if (!GEMINI_API_KEY) {
+      throw new Error("🚨 Falta GEMINI_API_KEY en el .env.local");
+    }
+
+    // Simulación de llamada a Gemini Flash 2.5
+    // 🔥 Cuando tengas la SDK real, reemplazas este fetch
+    const fakeReply = `Hola ${name}, soy tu Coach Virtual BeJoby. 🚀`;
+
+    return NextResponse.json({ reply: fakeReply });
   } catch (err) {
+    console.error("❌ Error en /api/coach:", err);
     return NextResponse.json(
-      { message: "Error al conectar con Gemini." },
+      { message: "Error conectando con Gemini." },
       { status: 500 }
     );
   }
 }
-
