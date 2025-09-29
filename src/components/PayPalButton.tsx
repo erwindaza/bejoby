@@ -9,6 +9,15 @@ interface PayPalButtonProps {
   onError: (err: unknown) => void;
 }
 
+type PayPalActions = {
+  order: {
+    create: (options: {
+      purchase_units: { amount: { value: string } }[];
+    }) => Promise<string>;
+    capture: () => Promise<{ id: string }>;
+  };
+};
+
 export default function PayPalButton({
   amount,
   onSuccess,
@@ -21,18 +30,22 @@ export default function PayPalButton({
 
     window.paypal
       .Buttons({
-        createOrder: (_: unknown, actions: any) => {
+        createOrder: (
+          _data: Record<string, unknown>,
+          actions: PayPalActions
+        ) => {
           return actions.order.create({
             purchase_units: [
               {
-                amount: {
-                  value: amount.toFixed(2),
-                },
+                amount: { value: amount.toFixed(2) },
               },
             ],
           });
         },
-        onApprove: async (_: unknown, actions: any) => {
+        onApprove: async (
+          _data: Record<string, unknown>,
+          actions: PayPalActions
+        ) => {
           const details = await actions.order.capture();
           onSuccess({ orderID: details.id });
         },
@@ -46,5 +59,3 @@ export default function PayPalButton({
 
   return <div ref={paypalRef} />;
 }
-
-
