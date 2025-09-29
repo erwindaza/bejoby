@@ -1,22 +1,8 @@
 // src/components/PayPalButton.tsx
+// src/components/PayPalButton.tsx
 "use client";
 
 import { useEffect, useRef } from "react";
-
-interface PayPalButtonProps {
-  amount: number;
-  onSuccess: (details: { orderID: string }) => void;
-  onError: (err: unknown) => void;
-}
-
-type PayPalActions = {
-  order: {
-    create: (options: {
-      purchase_units: { amount: { value: string } }[];
-    }) => Promise<string>;
-    capture: () => Promise<{ id: string }>;
-  };
-};
 
 export default function PayPalButton({
   amount,
@@ -30,7 +16,7 @@ export default function PayPalButton({
 
     window.paypal
       .Buttons({
-        createOrder: (
+        createOrder: async (
           _data: Record<string, unknown>,
           actions: PayPalActions
         ) => {
@@ -43,7 +29,7 @@ export default function PayPalButton({
           });
         },
         onApprove: async (
-          _data: Record<string, unknown>,
+          data: Record<string, unknown>,
           actions: PayPalActions
         ) => {
           const details = await actions.order.capture();
@@ -55,7 +41,7 @@ export default function PayPalButton({
         },
       })
       .render(paypalRef.current);
-  }, [amount, onError, onSuccess]);
+  }, [amount, onSuccess, onError]);
 
   return <div ref={paypalRef} />;
 }
