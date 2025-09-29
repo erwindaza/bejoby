@@ -1,4 +1,3 @@
-// src/components/CoachingForm.tsx
 "use client";
 
 import { useState } from "react";
@@ -18,16 +17,20 @@ export default function CoachingForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email }),
       });
-      const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.message || "Error en la conexión");
+        const errorText = await res.text();
+        console.error("❌ /api/coaching respondió mal:", errorText);
+        setStatus("❌ Error conectando con Coach Virtual.");
+        return;
       }
 
+      const data = await res.json();
+      console.log("✅ Respuesta /api/coaching:", data);
       setStatus(`✅ ${data.message}`);
     } catch (err) {
-      console.error("❌ Error en handleFreePlan:", err);
-      setStatus("❌ Error conectando con el Coach Virtual.");
+      console.error("❌ handleFreePlan error:", err);
+      setStatus("❌ Error conectando con Coach Virtual.");
     }
   };
 
@@ -46,7 +49,7 @@ export default function CoachingForm() {
         setStatus("❌ El pago no se completó correctamente.");
       }
     } catch (err) {
-      console.error("❌ Error en handleVerifyPayment:", err);
+      console.error("❌ handleVerifyPayment error:", err);
       setStatus("❌ Error verificando el pago.");
     }
   };
