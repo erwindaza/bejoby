@@ -1,3 +1,4 @@
+// src/components/Navbar.tsx
 "use client";
 
 import { useState } from "react";
@@ -47,15 +48,15 @@ export default function Navbar() {
         </button>
       </div>
 
-      {/* Menú desplegable móvil */}
+      {/* Menú fullscreen en móvil */}
       {isOpen && (
-        <div className="md:hidden bg-black/90 border-t border-gray-700">
-          <nav className="flex flex-col items-center space-y-4 py-6">
+        <div className="md:hidden fixed inset-0 bg-black/95 flex flex-col items-center justify-center z-50">
+          <nav className="flex flex-col items-center space-y-8 text-white text-2xl">
             {links.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-lg hover:text-purple-400 transition"
+                className="hover:text-purple-400 transition"
                 onClick={() => setIsOpen(false)}
               >
                 {link.label}
