@@ -1,7 +1,6 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import Navbar from "../components/Navbar"; 
-
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/react";
 
@@ -9,6 +8,9 @@ export const metadata: Metadata = {
   title: "BeJoby - Conectando talento",
   description:
     "Plataforma de coaching, empleabilidad y oportunidades laborales impulsada por inteligencia artificial.",
+  icons: {
+    icon: "/logo.png", // 👈 aquí se agrega el favicon
+  },
 };
 
 export default function RootLayout({
