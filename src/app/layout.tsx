@@ -1,10 +1,14 @@
 import "./globals.css";
 import type { Metadata } from "next";
-import Navbar from "../components/Navbar"; // 👈 usa ruta relativa para evitar problemas
+import Navbar from "../components/Navbar"; 
+
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Analytics } from "@vercel/analytics/react";
 
 export const metadata: Metadata = {
   title: "BeJoby - Conectando talento",
-  description: "Plataforma de coaching, empleabilidad y oportunidades laborales",
+  description:
+    "Plataforma de coaching, empleabilidad y oportunidades laborales impulsada por inteligencia artificial.",
 };
 
 export default function RootLayout({
@@ -18,7 +22,7 @@ export default function RootLayout({
         {/* 🌐 Navbar */}
         <Navbar />
 
-        {/* 📦 Contenido */}
+        {/* 📦 Contenido principal */}
         <main className="pt-20">{children}</main>
 
         {/* 📍 Footer */}
@@ -27,9 +31,11 @@ export default function RootLayout({
             © {new Date().getFullYear()} BeJoby — Impulsando tu futuro laboral
           </p>
         </footer>
+
+        {/* ⚡ Módulos de medición */}
+        <SpeedInsights />
+        <Analytics />
       </body>
     </html>
   );
 }
-
-
