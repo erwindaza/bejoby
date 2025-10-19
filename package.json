@@ -12,6 +12,7 @@
     "@google/generative-ai": "^0.24.1",
     "@vercel/analytics": "^1.5.0",
     "@vercel/speed-insights": "^1.2.0",
+    "bootstrap": "^5.3.8",
     "framer-motion": "^12.23.22",
     "lucide-react": "^0.544.0",
     "next": "15.0.3",
