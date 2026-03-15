@@ -1,0 +1,58 @@
+{
+  "meta": {
+    "title": "BeJoby - Connecting talent",
+    "description": "AI-powered coaching, employability and career opportunities platform."
+  },
+  "nav": {
+    "companies": "Companies",
+    "candidates": "Candidates",
+    "coaching": "Coaching",
+    "courses": "Courses",
+    "blog": "Blog",
+    "contact": "Contact",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
+  },
+  "hero": {
+    "title": "Powering your career future",
+    "subtitle": "We connect talent with opportunities through coaching and artificial intelligence.",
+    "cta": "Get started"
+  },
+  "footer": {
+    "copyright": "© {year} BeJoby — Powering your career future"
+  },
+  "contact": {
+    "title": "Contact Us",
+    "name": "Name",
+    "email": "Email",
+    "message": "Message",
+    "send": "Send message",
+    "success": "Message sent! We'll get back to you soon.",
+    "error": "Something went wrong. Please try again."
+  },
+  "jobs": {
+    "title": "Job Listings",
+    "search": "Search jobs...",
+    "apply": "Apply",
+    "noResults": "No jobs found.",
+    "fullTime": "Full-time",
+    "partTime": "Part-time",
+    "contract": "Contract",
+    "freelance": "Freelance"
+  },
+  "companies": {
+    "title": "For Companies",
+    "subtitle": "Post job listings and find the best talent.",
+    "postJob": "Post a job"
+  },
+  "candidates": {
+    "title": "For Candidates",
+    "subtitle": "Find your next job and boost your career.",
+    "register": "Register"
+  },
+  "coaching": {
+    "title": "Career Coaching",
+    "subtitle": "Prepare for your next interview with our virtual coach.",
+    "start": "Start coaching session"
+  }
+}
