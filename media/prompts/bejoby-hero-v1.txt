@@ -1,0 +1,12 @@
+Use case: hero background for bejoby.com
+Primary request: futuristic virtual office journey
+Scene/background: stylized office corridors with soft holographic panels
+Subject: glowing path and floating UI-like cards (abstract, no text)
+Action: slow forward glide through the space
+Camera: smooth dolly-forward, 24mm, stabilized
+Lighting/mood: optimistic, human-tech, inviting
+Color palette: teal, warm amber, soft white, charcoal
+Style/format: cinematic, clean, modern
+Timing/beats: 1) entry, 2) glide, 3) reveal, 4) settle
+Constraints: no people, no text, no logos
+Avoid: flicker, jitter, fast motion

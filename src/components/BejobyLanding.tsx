@@ -92,7 +92,6 @@ export default function BejobyLanding() {
     }
 
     const lines = cleaned.split("\n").map((line) => line.trim()).filter(Boolean);
-    const emailMatch = cleaned.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
     const yearsMatch = cleaned.match(/(\d{1,2})\s*(años|years)/i);
     const nameLine = lines.find((line) => line.length > 3 && !line.includes("@")) ?? cvSample.name;
 

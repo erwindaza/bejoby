@@ -1,0 +1,58 @@
+{
+  "meta": {
+    "title": "BeJoby - Conectando talento",
+    "description": "Plataforma de coaching, empleabilidad y oportunidades laborales impulsada por inteligencia artificial."
+  },
+  "nav": {
+    "companies": "Empresas",
+    "candidates": "Candidatos",
+    "coaching": "Coaching",
+    "courses": "Cursos",
+    "blog": "Blog",
+    "contact": "Contacto",
+    "openMenu": "Abrir menú",
+    "closeMenu": "Cerrar menú"
+  },
+  "hero": {
+    "title": "Impulsando tu futuro laboral",
+    "subtitle": "Conectamos talento con oportunidades mediante coaching e inteligencia artificial.",
+    "cta": "Comenzar ahora"
+  },
+  "footer": {
+    "copyright": "© {year} BeJoby — Impulsando tu futuro laboral"
+  },
+  "contact": {
+    "title": "Contáctanos",
+    "name": "Nombre",
+    "email": "Correo electrónico",
+    "message": "Mensaje",
+    "send": "Enviar mensaje",
+    "success": "¡Mensaje enviado! Te responderemos pronto.",
+    "error": "Hubo un error. Intenta de nuevo."
+  },
+  "jobs": {
+    "title": "Ofertas Laborales",
+    "search": "Buscar ofertas...",
+    "apply": "Postular",
+    "noResults": "No se encontraron ofertas.",
+    "fullTime": "Tiempo completo",
+    "partTime": "Medio tiempo",
+    "contract": "Contrato",
+    "freelance": "Freelance"
+  },
+  "companies": {
+    "title": "Para Empresas",
+    "subtitle": "Publica ofertas laborales y encuentra al mejor talento.",
+    "postJob": "Publicar oferta"
+  },
+  "candidates": {
+    "title": "Para Candidatos",
+    "subtitle": "Encuentra tu próximo empleo y potencia tu carrera.",
+    "register": "Registrarse"
+  },
+  "coaching": {
+    "title": "Coaching Laboral",
+    "subtitle": "Prepárate para tu próxima entrevista con nuestro coach virtual.",
+    "start": "Iniciar sesión de coaching"
+  }
+}

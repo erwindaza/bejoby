@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function LandingPage() {
   return (
     <section className="h-screen flex flex-col items-center justify-center text-center px-6 bg-gradient-to-br from-indigo-700 via-purple-700 to-black text-white">
@@ -9,12 +11,12 @@ export default function LandingPage() {
         <span className="text-indigo-300">empleabilidad</span> y{" "}
         <span className="text-purple-300">futuro laboral</span>.
       </p>
-      <a
+      <Link
         href="/candidatos"
         className="btn-primary shadow-2xl"
       >
         🚀 Empieza Ahora
-      </a>
+      </Link>
     </section>
   );
 }
