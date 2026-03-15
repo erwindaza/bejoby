@@ -42,7 +42,12 @@ export async function POST(req: Request) {
 
     return created({ id: docRef.id, ...parsed.data });
   } catch (err) {
-    console.error("[POST /api/candidates]", err);
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("[POST /api/candidates]", message);
+    // Surface config errors so we can debug in production
+    if (message.includes("Missing")) {
+      return error(message, 500);
+    }
     return serverError();
   }
 }
