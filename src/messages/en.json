@@ -4,14 +4,16 @@
     "description": "AI-powered coaching, employability and career opportunities platform."
   },
   "nav": {
-    "companies": "Companies",
-    "candidates": "Candidates",
+    "jobBoard": "Job Board",
+    "seekers": "Seekers",
+    "employers": "Employers",
     "coaching": "Coaching",
     "courses": "Courses",
     "blog": "Blog",
     "contact": "Contact",
     "openMenu": "Open menu",
-    "closeMenu": "Close menu"
+    "closeMenu": "Close menu",
+    "switchLang": "Switch to Spanish"
   },
   "hero": {
     "title": "Powering your career future",

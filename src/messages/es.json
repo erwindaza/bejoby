@@ -4,14 +4,16 @@
     "description": "Plataforma de coaching, empleabilidad y oportunidades laborales impulsada por inteligencia artificial."
   },
   "nav": {
-    "companies": "Empresas",
-    "candidates": "Candidatos",
+    "jobBoard": "Ofertas",
+    "seekers": "Candidatos",
+    "employers": "Empresas",
     "coaching": "Coaching",
     "courses": "Cursos",
     "blog": "Blog",
     "contact": "Contacto",
     "openMenu": "Abrir menú",
-    "closeMenu": "Cerrar menú"
+    "closeMenu": "Cerrar menú",
+    "switchLang": "Cambiar a inglés"
   },
   "hero": {
     "title": "Impulsando tu futuro laboral",
