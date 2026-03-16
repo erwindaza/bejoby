@@ -11,9 +11,39 @@ export async function GET() {
     NODE_ENV: process.env.NODE_ENV,
   };
 
+  // Test Firestore connection
+  let firestoreTest = "not tested";
+  try {
+    const keyJson = process.env.GCP_SERVICE_ACCOUNT_KEY;
+    if (keyJson) {
+      const parsed = JSON.parse(keyJson);
+      firestoreTest = parsed.client_email
+        ? `key_ok: ${parsed.client_email}`
+        : "key_parsed_but_no_client_email";
+    } else {
+      firestoreTest = "no_key";
+    }
+  } catch (e) {
+    firestoreTest = `json_parse_error: ${e instanceof Error ? e.message : String(e)}`;
+  }
+
+  // Try actual Firestore connection
+  let dbTest = "not tested";
+  try {
+    const { getFirestore } = await import("@/lib/gcp/firestore");
+    const db = getFirestore();
+    // Simple listCollections to test auth
+    const collections = await db.listCollections();
+    dbTest = `connected (${collections.length} collections)`;
+  } catch (e) {
+    dbTest = `error: ${e instanceof Error ? e.message : String(e)}`;
+  }
+
   return NextResponse.json({
     message: "Pong! API funcionando 🚀",
     env: envStatus,
+    firestoreKeyTest: firestoreTest,
+    firestoreConnectionTest: dbTest,
     timestamp: new Date().toISOString(),
   });
 }
