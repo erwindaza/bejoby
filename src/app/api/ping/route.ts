@@ -11,15 +11,27 @@ export async function GET() {
     NODE_ENV: process.env.NODE_ENV,
   };
 
-  // Test Firestore connection
+  // Test Firestore key parsing
   let firestoreTest = "not tested";
+  let keyDiag = {};
   try {
     const keyJson = process.env.GCP_SERVICE_ACCOUNT_KEY;
     if (keyJson) {
       const parsed = JSON.parse(keyJson);
+      const pk = parsed.private_key || "";
       firestoreTest = parsed.client_email
         ? `key_ok: ${parsed.client_email}`
         : "key_parsed_but_no_client_email";
+      keyDiag = {
+        hasClientEmail: !!parsed.client_email,
+        hasPrivateKey: !!parsed.private_key,
+        privateKeyLength: pk.length,
+        startsWithBegin: pk.startsWith("-----BEGIN"),
+        endsWithEnd: pk.trimEnd().endsWith("-----END PRIVATE KEY-----"),
+        containsRealNewlines: pk.includes("\n"),
+        containsLiteralBackslashN: pk.includes("\\n"),
+        first50: pk.substring(0, 50),
+      };
     } else {
       firestoreTest = "no_key";
     }
@@ -43,6 +55,7 @@ export async function GET() {
     message: "Pong! API funcionando 🚀",
     env: envStatus,
     firestoreKeyTest: firestoreTest,
+    keyDiagnostics: keyDiag,
     firestoreConnectionTest: dbTest,
     timestamp: new Date().toISOString(),
   });
