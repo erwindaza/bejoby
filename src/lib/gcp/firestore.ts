@@ -5,6 +5,31 @@ import { Firestore } from "@google-cloud/firestore";
 let firestoreInstance: Firestore | null = null;
 
 /**
+ * Parses the service account key from env var.
+ * Supports both plain JSON and Base64-encoded JSON (recommended for Vercel).
+ */
+function parseServiceAccountKey(raw: string): Record<string, string> {
+  // Try plain JSON first
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed.client_email) return parsed;
+  } catch {
+    // Not valid JSON — try Base64
+  }
+
+  // Try Base64-encoded JSON
+  try {
+    const decoded = Buffer.from(raw, "base64").toString("utf-8");
+    const parsed = JSON.parse(decoded);
+    if (parsed.client_email) return parsed;
+  } catch {
+    // Not valid Base64 either
+  }
+
+  throw new Error("GCP_SERVICE_ACCOUNT_KEY is not valid JSON or Base64-encoded JSON");
+}
+
+/**
  * Returns a singleton Firestore client configured from environment variables.
  * All credentials come from env vars (Vercel / .env.local), never hardcoded.
  */
@@ -12,31 +37,36 @@ export function getFirestore(): Firestore {
   if (firestoreInstance) return firestoreInstance;
 
   const projectId = process.env.GCP_PROJECT_ID;
-  const databaseId = process.env.FIRESTORE_DATABASE_ID || "(default)";
-  const keyJson = process.env.GCP_SERVICE_ACCOUNT_KEY;
+  const keyRaw = process.env.GCP_SERVICE_ACCOUNT_KEY;
 
   if (!projectId) {
     throw new Error("Missing GCP_PROJECT_ID environment variable");
   }
 
-  if (!keyJson) {
+  if (!keyRaw) {
     throw new Error("Missing GCP_SERVICE_ACCOUNT_KEY environment variable");
   }
 
-  const credentials = JSON.parse(keyJson);
+  const credentials = parseServiceAccountKey(keyRaw);
 
-  // Vercel may store literal "\\n" instead of real newlines in private_key.
-  // Normalize to ensure RSA key is valid.
+  // Normalize private_key newlines (Vercel may store literal \\n)
   const privateKey = (credentials.private_key || "").replace(/\\n/g, "\n");
 
-  firestoreInstance = new Firestore({
+  // Only pass databaseId if it's not the default
+  const databaseId = process.env.FIRESTORE_DATABASE_ID;
+  const firestoreOpts: ConstructorParameters<typeof Firestore>[0] = {
     projectId,
-    databaseId,
     credentials: {
       client_email: credentials.client_email,
       private_key: privateKey,
     },
-  });
+  };
+
+  if (databaseId && databaseId !== "(default)") {
+    firestoreOpts.databaseId = databaseId;
+  }
+
+  firestoreInstance = new Firestore(firestoreOpts);
 
   return firestoreInstance;
 }
