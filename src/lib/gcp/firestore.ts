@@ -6,8 +6,7 @@ let firestoreInstance: Firestore | null = null;
 
 /**
  * Returns a singleton Firestore client configured from environment variables.
- * In production (Vercel), uses GCP_SERVICE_ACCOUNT_KEY.
- * Locally, uses the same env var from .env.local.
+ * All credentials come from env vars (Vercel / .env.local), never hardcoded.
  */
 export function getFirestore(): Firestore {
   if (firestoreInstance) return firestoreInstance;
@@ -26,12 +25,16 @@ export function getFirestore(): Firestore {
 
   const credentials = JSON.parse(keyJson);
 
+  // Vercel may store literal "\\n" instead of real newlines in private_key.
+  // Normalize to ensure RSA key is valid.
+  const privateKey = (credentials.private_key || "").replace(/\\n/g, "\n");
+
   firestoreInstance = new Firestore({
     projectId,
     databaseId,
     credentials: {
       client_email: credentials.client_email,
-      private_key: credentials.private_key,
+      private_key: privateKey,
     },
   });
 
