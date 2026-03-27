@@ -3,6 +3,7 @@ import { applications, jobs, candidates } from "@/lib/gcp/collections";
 import { createApplicationSchema } from "@/lib/validators/application";
 import { created, error, serverError } from "@/lib/utils/api-response";
 import { FieldValue } from "@google-cloud/firestore";
+import { notifyApplicationReceived } from "@/lib/email";
 
 // POST /api/applications — Apply to a job
 export async function POST(req: Request) {
@@ -38,6 +39,17 @@ export async function POST(req: Request) {
       created_at: FieldValue.serverTimestamp(),
       updated_at: FieldValue.serverTimestamp(),
     });
+
+    // Fire-and-forget email notification
+    const jobData = jobDoc.data();
+    notifyApplicationReceived({
+      id: docRef.id,
+      job_id: parsed.data.job_id,
+      job_title: jobData?.title || "(sin título)",
+      candidate_name: parsed.data.candidate_name,
+      candidate_email: parsed.data.candidate_email,
+      message: parsed.data.message,
+    }).catch(() => {});
 
     return created({ id: docRef.id, ...parsed.data, status: "pending" });
   } catch (err) {

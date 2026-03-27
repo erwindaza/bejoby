@@ -3,6 +3,7 @@ import { jobs } from "@/lib/gcp/collections";
 import { createJobSchema } from "@/lib/validators/job";
 import { success, created, error, serverError } from "@/lib/utils/api-response";
 import { FieldValue, Query } from "@google-cloud/firestore";
+import { notifyJobPosted } from "@/lib/email";
 
 // GET /api/jobs — List jobs with optional filters
 export async function GET(req: Request) {
@@ -58,6 +59,9 @@ export async function POST(req: Request) {
       created_at: FieldValue.serverTimestamp(),
       updated_at: FieldValue.serverTimestamp(),
     });
+
+    // Fire-and-forget email notification
+    notifyJobPosted({ id: docRef.id, ...parsed.data }).catch(() => {});
 
     return created({ id: docRef.id, ...parsed.data });
   } catch (err) {
