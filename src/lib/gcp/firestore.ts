@@ -7,11 +7,19 @@ let firestoreInstance: Firestore | null = null;
 /**
  * Parses the service account key from env var.
  * Supports both plain JSON and Base64-encoded JSON (recommended for Vercel).
+ * Also handles double-quoted values that Vercel may wrap.
  */
-function parseServiceAccountKey(raw: string): Record<string, string> {
+export function parseServiceAccountKey(raw: string): Record<string, string> {
+  // Strip surrounding quotes if Vercel double-quoted the value
+  let cleaned = raw.trim();
+  if ((cleaned.startsWith('"') && cleaned.endsWith('"')) ||
+      (cleaned.startsWith("'") && cleaned.endsWith("'"))) {
+    cleaned = cleaned.slice(1, -1);
+  }
+
   // Try plain JSON first
   try {
-    const parsed = JSON.parse(raw);
+    const parsed = JSON.parse(cleaned);
     if (parsed.client_email) return parsed;
   } catch {
     // Not valid JSON — try Base64

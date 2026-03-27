@@ -6,7 +6,6 @@ export async function GET() {
   const env = {
     GCP_PROJECT_ID: !!process.env.GCP_PROJECT_ID,
     GCP_SERVICE_ACCOUNT_KEY: !!process.env.GCP_SERVICE_ACCOUNT_KEY,
-    FIRESTORE_DATABASE_ID: !!process.env.FIRESTORE_DATABASE_ID,
     FIRESTORE_PREFIX: process.env.FIRESTORE_PREFIX ?? "(not set)",
     GEMINI_API_KEY: !!process.env.GEMINI_API_KEY,
     NODE_ENV: process.env.NODE_ENV,
@@ -15,11 +14,9 @@ export async function GET() {
   // Validate key structure (booleans only, no content)
   let keyValid = false;
   try {
-    const raw = process.env.GCP_SERVICE_ACCOUNT_KEY;
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      keyValid = !!(parsed.client_email && parsed.private_key);
-    }
+    const { parseServiceAccountKey } = await import("@/lib/gcp/firestore");
+    const parsed = parseServiceAccountKey(process.env.GCP_SERVICE_ACCOUNT_KEY || "");
+    keyValid = !!(parsed.client_email && parsed.private_key);
   } catch {
     keyValid = false;
   }
@@ -35,7 +32,6 @@ export async function GET() {
       dbStatus = "ok";
     } catch (e) {
       dbStatus = "error";
-      // Only surface error code, not full message (may contain internal details)
       const msg = e instanceof Error ? e.message : "";
       const code = msg.match(/^(\d+\s\S+)/)?.[1] || "unknown";
       dbError = code;
@@ -46,6 +42,16 @@ export async function GET() {
     status: "ok",
     env,
     serviceAccountKeyValid: keyValid,
+    firestore: { status: dbStatus, ...(dbError && { code: dbError }) },
+    timestamp: new Date().toISOString(),
+  });
+}
+
+  return NextResponse.json({
+    status: "ok",
+    env,
+    serviceAccountKeyValid: keyValid,
+    keyFormat: keyDebug,
     firestore: { status: dbStatus, ...(dbError && { code: dbError }) },
     timestamp: new Date().toISOString(),
   });
