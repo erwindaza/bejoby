@@ -21,10 +21,10 @@ export default function JobsPage() {
 
   return (
     <main className="min-h-screen pb-24">
-      <section className="pt-28 pb-12 text-center bg-gradient-to-r from-indigo-700 to-purple-700 text-white px-4">
+      <section className="pt-24 pb-12 text-center bg-gradient-to-b from-blue-950/60 to-transparent text-white px-4">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-4xl md:text-5xl font-extrabold mb-4">{t.title}</h1>
-          <p className="text-lg text-indigo-100/90">{t.subtitle}</p>
+          <p className="text-lg text-slate-400">{t.subtitle}</p>
         </div>
       </section>
 

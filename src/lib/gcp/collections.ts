@@ -24,3 +24,4 @@ export const jobs = () => collection("jobs");
 export const candidates = () => collection("candidates");
 export const applications = () => collection("applications");
 export const contactForms = () => collection("contact_forms");
+export const events = () => collection("events");

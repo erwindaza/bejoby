@@ -33,7 +33,7 @@ export default function ConsentCheckbox({
           checked={checked}
           onChange={(e) => onChange(e.target.checked)}
           required={required}
-          className="mt-1 h-4 w-4 rounded border-gray-600 bg-gray-800 text-purple-500 focus:ring-purple-500 focus:ring-offset-gray-900"
+          className="mt-1 h-4 w-4 rounded border-gray-600 bg-gray-800 text-blue-500 focus:ring-blue-500 focus:ring-offset-gray-900"
         />
         <span className="text-sm text-gray-300 group-hover:text-gray-100 transition-colors">
           {label}
@@ -43,7 +43,7 @@ export default function ConsentCheckbox({
               <Link
                 href={linkHref}
                 target="_blank"
-                className="text-purple-400 hover:text-purple-300 underline"
+                className="text-blue-400 hover:text-blue-300 underline"
               >
                 {linkText}
               </Link>

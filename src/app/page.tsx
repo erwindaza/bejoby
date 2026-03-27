@@ -1,5 +1,5 @@
-import BejobyLanding from "@/components/BejobyLanding";
+import { redirect } from "next/navigation";
 
 export default function Home() {
-  return <BejobyLanding />;
+  redirect("/es");
 }

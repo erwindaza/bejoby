@@ -51,17 +51,17 @@ export default function JobCard({
     : "";
 
   return (
-    <div className="p-6 bg-gray-800/50 border border-gray-700 rounded-xl hover:border-purple-500/50 transition-all group">
+    <div className="p-6 bg-gray-800/50 border border-gray-700 rounded-xl hover:border-blue-500/50 transition-all group">
       <div className="flex items-start justify-between mb-3">
         <div>
-          <h3 className="text-lg font-bold text-white group-hover:text-purple-300 transition-colors">
+          <h3 className="text-lg font-bold text-white group-hover:text-blue-300 transition-colors">
             {title}
           </h3>
           {company_name && (
-            <p className="text-sm text-purple-400">{company_name}</p>
+            <p className="text-sm text-blue-400">{company_name}</p>
           )}
         </div>
-        <span className="px-3 py-1 bg-purple-600/20 text-purple-300 text-xs font-medium rounded-full whitespace-nowrap">
+        <span className="px-3 py-1 bg-blue-600/20 text-blue-300 text-xs font-medium rounded-full whitespace-nowrap">
           {typeLabel}
         </span>
       </div>
@@ -84,7 +84,7 @@ export default function JobCard({
 
       <Link
         href={`/${locale}/jobs/${id}`}
-        className="inline-block px-5 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-sm font-medium rounded-lg transition-all"
+        className="inline-block px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-lg transition-all"
       >
         {locale === "es" ? "Ver oferta" : "View job"}
       </Link>
