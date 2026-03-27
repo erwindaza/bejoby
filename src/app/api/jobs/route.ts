@@ -13,15 +13,28 @@ export async function GET(req: Request) {
     const employer_id = searchParams.get("employer_id");
     const work_mode = searchParams.get("work_mode");
 
-    let query: Query = jobs().orderBy("created_at", "desc");
+    // Build query — avoid composite index requirements by filtering in JS
+    // Only use Firestore where() for single-field filters that don't need orderBy
+    let query: Query = jobs();
 
-    if (status) query = query.where("status", "==", status);
-    if (language) query = query.where("language", "==", language);
     if (employer_id) query = query.where("employer_id", "==", employer_id);
-    if (work_mode) query = query.where("work_mode", "==", work_mode);
 
     const snapshot = await query.get();
-    const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let data: any[] = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+
+    // Client-side filtering (avoids Firestore composite index requirements)
+    if (status) data = data.filter((d) => d.status === status);
+    if (language) data = data.filter((d) => d.language === language);
+    if (work_mode) data = data.filter((d) => d.work_mode === work_mode);
+
+    // Sort by created_at desc (newest first)
+    data.sort((a, b) => {
+      const ta = a.created_at?._seconds ?? 0;
+      const tb = b.created_at?._seconds ?? 0;
+      return tb - ta;
+    });
+
     return success(data);
   } catch (err) {
     console.error("[GET /api/jobs]", err);
