@@ -1,4 +1,4 @@
-// 📁 src/components/Navbar.tsx
+// src/components/Navbar.tsx — Clean job portal navigation
 "use client";
 
 import { useState, useCallback } from "react";
@@ -9,131 +9,100 @@ import { usePathname, useRouter } from "next/navigation";
 const LOCALES = ["es", "en"] as const;
 type Locale = (typeof LOCALES)[number];
 
-const NAV_LINKS: Record<Locale, { href: string; label: string }[]> = {
-  es: [
-    { href: "/jobs", label: "Ofertas" },
-    { href: "/candidatos", label: "Candidatos" },
-    { href: "/empresas", label: "Empresas" },
-    { href: "/coaching", label: "Coaching" },
-    { href: "/blog", label: "Blog" },
-  ],
-  en: [
-    { href: "/jobs", label: "Job Board" },
-    { href: "/candidatos", label: "Seekers" },
-    { href: "/empresas", label: "Employers" },
-    { href: "/coaching", label: "Coaching" },
-    { href: "/blog", label: "Blog" },
-  ],
-};
-
-function getLocaleFromPath(pathname: string): Locale {
-  const seg = pathname.split("/")[1];
-  if (seg === "en") return "en";
-  return "es";
+function getLocale(pathname: string): Locale {
+  return pathname.split("/")[1] === "en" ? "en" : "es";
 }
 
+const labels = {
+  es: { findJobs: "Buscar Empleo", postJob: "Publicar Oferta" },
+  en: { findJobs: "Find Jobs", postJob: "Post a Job" },
+};
+
 export default function Navbar() {
-  const [isOpen, setIsOpen] = useState(false);
+  const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
-  const locale = getLocaleFromPath(pathname);
-  const otherLocale: Locale = locale === "es" ? "en" : "es";
-  const links = NAV_LINKS[locale];
+  const locale = getLocale(pathname);
+  const other: Locale = locale === "es" ? "en" : "es";
+  const t = labels[locale];
 
   const switchLocale = useCallback(() => {
-    // Replace /es/... with /en/... or vice versa
-    const segments = pathname.split("/");
-    if (LOCALES.includes(segments[1] as Locale)) {
-      segments[1] = otherLocale;
-    } else {
-      segments.splice(1, 0, otherLocale);
-    }
-    router.push(segments.join("/") || "/");
-  }, [pathname, otherLocale, router]);
-
-  const localizedHref = (href: string) => `/${locale}${href}`;
+    const segs = pathname.split("/");
+    if (LOCALES.includes(segs[1] as Locale)) segs[1] = other;
+    else segs.splice(1, 0, other);
+    router.push(segs.join("/") || "/");
+  }, [pathname, other, router]);
 
   return (
-    <header className="fixed top-0 left-0 w-full bg-black/40 backdrop-blur-md border-b border-purple-800/20 z-50 transition-all duration-300">
-      <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-16">
+    <header className="fixed top-0 left-0 w-full bg-slate-900/95 backdrop-blur-sm border-b border-slate-700/50 z-50">
+      <div className="max-w-6xl mx-auto px-4 flex items-center justify-between h-14">
         {/* Logo */}
-        <Link href={`/${locale}`} className="flex items-center gap-2 hover:opacity-90 transition-opacity">
-          <Image
-            src="/logo.svg"
-            alt="BeJoby Logo"
-            width={38}
-            height={38}
-            priority
-            className="rounded-full drop-shadow-sm"
-          />
-          <span className="text-2xl font-extrabold bg-gradient-to-r from-indigo-400 to-purple-500 bg-clip-text text-transparent tracking-tight">
-            BeJoby
-          </span>
+        <Link href={`/${locale}`} className="flex items-center gap-2">
+          <Image src="/logo.svg" alt="BeJoby" width={30} height={30} priority className="rounded-full" />
+          <span className="text-xl font-bold text-white tracking-tight">BeJoby</span>
         </Link>
 
-        {/* Desktop nav */}
-        <nav className="hidden md:flex items-center space-x-6 text-sm font-medium text-gray-200">
-          {links.map((link) => (
-            <Link
-              key={link.href}
-              href={localizedHref(link.href)}
-              className="relative group transition-colors duration-200"
-            >
-              <span className="group-hover:text-purple-400">{link.label}</span>
-              <span className="absolute left-0 bottom-[-4px] w-0 h-[2px] bg-gradient-to-r from-purple-500 to-indigo-400 group-hover:w-full transition-all duration-300" />
-            </Link>
-          ))}
-
-          {/* Language toggle */}
+        {/* Desktop */}
+        <nav className="hidden md:flex items-center gap-5">
+          <Link
+            href={`/${locale}/jobs`}
+            className="text-sm text-slate-300 hover:text-white transition"
+          >
+            {t.findJobs}
+          </Link>
+          <Link
+            href={`/${locale}/post-job`}
+            className="text-sm px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium transition"
+          >
+            {t.postJob}
+          </Link>
           <button
             onClick={switchLocale}
-            className="ml-4 flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-purple-500/40 bg-purple-600/10 hover:bg-purple-600/25 text-xs font-bold text-purple-300 hover:text-white transition-all duration-200"
-            aria-label={locale === "es" ? "Switch to English" : "Cambiar a Español"}
+            className="text-sm text-slate-400 hover:text-white transition"
+            aria-label="Switch language"
           >
-            <span className="text-base">{locale === "es" ? "🇺🇸" : "🇪🇸"}</span>
-            {otherLocale.toUpperCase()}
+            {locale === "es" ? "🇺🇸 EN" : "🇪🇸 ES"}
           </button>
         </nav>
 
         {/* Mobile hamburger */}
-        <div className="flex items-center gap-3 md:hidden">
-          {/* Mobile lang toggle */}
-          <button
-            onClick={switchLocale}
-            className="flex items-center gap-1 px-2 py-1 rounded-full border border-purple-500/40 bg-purple-600/10 text-xs font-bold text-purple-300"
-            aria-label={locale === "es" ? "Switch to English" : "Cambiar a Español"}
-          >
-            <span className="text-sm">{locale === "es" ? "🇺🇸" : "🇪🇸"}</span>
-            {otherLocale.toUpperCase()}
-          </button>
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="text-white text-3xl focus:outline-none"
-            aria-label={isOpen ? "Close menu" : "Open menu"}
-          >
-            {isOpen ? "✖" : "☰"}
-          </button>
-        </div>
+        <button
+          onClick={() => setOpen(!open)}
+          className="md:hidden text-white text-2xl"
+          aria-label="Menu"
+        >
+          {open ? "✕" : "☰"}
+        </button>
       </div>
 
-      {/* Mobile fullscreen menu */}
-      {isOpen && (
-        <div className="md:hidden fixed inset-0 bg-gradient-to-b from-black via-purple-950/90 to-black flex flex-col items-center justify-center z-40">
-          <nav className="flex flex-col items-center space-y-8 text-white text-2xl font-semibold">
-            {links.map((link) => (
-              <Link
-                key={link.href}
-                href={localizedHref(link.href)}
-                className="hover:text-purple-400 transition-all duration-200"
-                onClick={() => setIsOpen(false)}
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
-        </div>
+      {/* Mobile dropdown */}
+      {open && (
+        <nav className="md:hidden border-t border-slate-700/50 bg-slate-900 px-4 py-4 space-y-3">
+          <Link
+            href={`/${locale}/jobs`}
+            className="block text-slate-300 hover:text-white py-2"
+            onClick={() => setOpen(false)}
+          >
+            {t.findJobs}
+          </Link>
+          <Link
+            href={`/${locale}/post-job`}
+            className="block text-center px-4 py-2 bg-blue-600 text-white rounded-lg font-medium"
+            onClick={() => setOpen(false)}
+          >
+            {t.postJob}
+          </Link>
+          <button
+            onClick={() => {
+              switchLocale();
+              setOpen(false);
+            }}
+            className="block text-slate-400 hover:text-white py-2"
+          >
+            {locale === "es" ? "🇺🇸 English" : "🇪🇸 Español"}
+          </button>
+        </nav>
       )}
     </header>
   );
 }
-

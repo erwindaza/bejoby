@@ -46,13 +46,3 @@ export async function GET() {
     timestamp: new Date().toISOString(),
   });
 }
-
-  return NextResponse.json({
-    status: "ok",
-    env,
-    serviceAccountKeyValid: keyValid,
-    keyFormat: keyDebug,
-    firestore: { status: dbStatus, ...(dbError && { code: dbError }) },
-    timestamp: new Date().toISOString(),
-  });
-}

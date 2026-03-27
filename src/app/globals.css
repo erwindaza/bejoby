@@ -2,87 +2,25 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url("https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600;700&family=Manrope:wght@300;400;600;700&display=swap");
-
 :root {
-  --ink: #0b0d14;
-  --ink-soft: #121624;
-  --sand: #f4f1e9;
-  --sand-muted: rgba(244, 241, 233, 0.7);
-  --sunset: #f5b453;
-  --coral: #f26c9a;
-  --cyan: #6dd1ff;
+  --background: #0f172a;
+  --foreground: #f1f5f9;
 }
 
-* {
-  box-sizing: border-box;
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  font-family: "Manrope", sans-serif;
-  background: radial-gradient(circle at top, #1b2033 0%, #0b0d14 55%, #07080d 100%);
-  color: var(--sand);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    sans-serif;
+  background: var(--background);
+  color: var(--foreground);
   min-height: 100vh;
 }
 
-.bg-page {
-  background: radial-gradient(circle at 10% 10%, rgba(109, 209, 255, 0.12), transparent 40%),
-    radial-gradient(circle at 90% 20%, rgba(242, 108, 154, 0.18), transparent 45%),
-    radial-gradient(circle at 40% 90%, rgba(245, 180, 83, 0.15), transparent 45%),
-    var(--ink);
+*:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
 }
 
-.font-display {
-  font-family: "Fraunces", serif;
-}
-
-.text-sand {
-  color: var(--sand);
-}
-
-.text-sand\/70 {
-  color: var(--sand-muted);
-}
-
-.bg-ink {
-  background: var(--ink);
-}
-
-.bg-sunset {
-  background: var(--sunset);
-}
-
-.bg-cyan {
-  background: var(--cyan);
-}
-
-.text-coral {
-  color: var(--coral);
-}
-
-.shadow-glow {
-  box-shadow: 0 18px 40px rgba(245, 180, 83, 0.35);
-}
-
-.shadow-cyan {
-  box-shadow: 0 0 12px rgba(109, 209, 255, 0.8);
-}
-
-.input {
-  width: 100%;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.04);
-  padding: 10px 16px;
-  font-size: 0.9rem;
-  color: var(--sand);
-}
-
-.input:focus {
-  outline: none;
-  border-color: rgba(109, 209, 255, 0.5);
-}
-
-a {
-  transition: color 0.2s ease;
-}

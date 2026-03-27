@@ -152,7 +152,7 @@ export default function JobApplyForm({ jobId, jobTitle, locale = "es", onSuccess
             value={form.name}
             onChange={handleChange}
             required
-            className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none"
+            className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
           />
         </div>
         <div>
@@ -163,7 +163,7 @@ export default function JobApplyForm({ jobId, jobTitle, locale = "es", onSuccess
             value={form.email}
             onChange={handleChange}
             required
-            className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none"
+            className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
           />
         </div>
       </div>
@@ -174,7 +174,7 @@ export default function JobApplyForm({ jobId, jobTitle, locale = "es", onSuccess
           name="linkedin"
           value={form.linkedin}
           onChange={handleChange}
-          className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none"
+          className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
           placeholder="https://linkedin.com/in/..."
         />
       </div>
@@ -186,7 +186,7 @@ export default function JobApplyForm({ jobId, jobTitle, locale = "es", onSuccess
           value={form.message}
           onChange={handleChange}
           rows={4}
-          className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none resize-none"
+          className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none resize-none"
           placeholder={t.messagePlaceholder}
         />
       </div>

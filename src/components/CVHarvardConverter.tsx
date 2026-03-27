@@ -96,7 +96,7 @@ export default function CVHarvardConverter({ locale = "es" }: CVHarvardConverter
             value={cvText}
             onChange={(e) => setCvText(e.target.value)}
             rows={12}
-            className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none resize-none font-mono text-sm"
+            className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none resize-none font-mono text-sm"
             placeholder={t.placeholder}
           />
 
@@ -137,7 +137,7 @@ export default function CVHarvardConverter({ locale = "es" }: CVHarvardConverter
           <div className="flex gap-3">
             <button
               onClick={handleCopy}
-              className="flex-1 py-2.5 bg-purple-600 hover:bg-purple-500 text-white font-medium rounded-lg transition-all"
+              className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-lg transition-all"
             >
               {copied ? `✅ ${t.copied}` : `📋 ${t.copy}`}
             </button>

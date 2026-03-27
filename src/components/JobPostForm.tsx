@@ -82,7 +82,7 @@ export default function JobPostForm({ employerId, onSuccess }: JobPostFormProps)
           value={form.title}
           onChange={handleChange}
           required
-          className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none"
+          className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
           placeholder="Ej: Desarrollador Full Stack Senior"
         />
       </div>
@@ -97,7 +97,7 @@ export default function JobPostForm({ employerId, onSuccess }: JobPostFormProps)
           onChange={handleChange}
           required
           rows={6}
-          className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none resize-none"
+          className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none resize-none"
           placeholder="Describe las responsabilidades, requisitos y beneficios del puesto..."
         />
       </div>
@@ -109,7 +109,7 @@ export default function JobPostForm({ employerId, onSuccess }: JobPostFormProps)
             name="location"
             value={form.location}
             onChange={handleChange}
-            className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none"
+            className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
             placeholder="Ej: Santiago, Chile / Remoto"
           />
         </div>
@@ -121,7 +121,7 @@ export default function JobPostForm({ employerId, onSuccess }: JobPostFormProps)
             name="salary_range"
             value={form.salary_range}
             onChange={handleChange}
-            className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none"
+            className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
             placeholder="Ej: $1.500.000 - $2.500.000 CLP"
           />
         </div>
@@ -134,7 +134,7 @@ export default function JobPostForm({ employerId, onSuccess }: JobPostFormProps)
             name="employment_type"
             value={form.employment_type}
             onChange={handleChange}
-            className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none"
+            className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
           >
             <option value="full-time">Tiempo completo</option>
             <option value="part-time">Medio tiempo</option>
@@ -148,7 +148,7 @@ export default function JobPostForm({ employerId, onSuccess }: JobPostFormProps)
             name="language"
             value={form.language}
             onChange={handleChange}
-            className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none"
+            className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
           >
             <option value="es">Español</option>
             <option value="en">English</option>
@@ -160,7 +160,7 @@ export default function JobPostForm({ employerId, onSuccess }: JobPostFormProps)
             name="status"
             value={form.status}
             onChange={handleChange}
-            className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none"
+            className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
           >
             <option value="published">Publicar ahora</option>
             <option value="draft">Guardar borrador</option>
@@ -177,7 +177,7 @@ export default function JobPostForm({ employerId, onSuccess }: JobPostFormProps)
       <button
         type="submit"
         disabled={status === "loading"}
-        className="w-full py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {status === "loading" ? "Publicando..." : "Publicar oferta laboral"}
       </button>

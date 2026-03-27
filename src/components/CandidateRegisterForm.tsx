@@ -92,7 +92,7 @@ export default function CandidateRegisterForm({ locale = "es" }: { locale?: stri
             value={form.name}
             onChange={handleChange}
             required
-            className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none"
+            className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
             placeholder={locale === "es" ? "Ej: Juan Pérez" : "e.g. John Smith"}
           />
         </div>
@@ -104,7 +104,7 @@ export default function CandidateRegisterForm({ locale = "es" }: { locale?: stri
             value={form.email}
             onChange={handleChange}
             required
-            className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none"
+            className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
             placeholder="tu@email.com"
           />
         </div>
@@ -119,7 +119,7 @@ export default function CandidateRegisterForm({ locale = "es" }: { locale?: stri
             name="phone"
             value={form.phone}
             onChange={handleChange}
-            className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none"
+            className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
             placeholder="+56 9 1234 5678"
           />
         </div>
@@ -129,7 +129,7 @@ export default function CandidateRegisterForm({ locale = "es" }: { locale?: stri
             name="linkedin"
             value={form.linkedin}
             onChange={handleChange}
-            className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none"
+            className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
             placeholder="https://linkedin.com/in/tu-perfil"
           />
         </div>

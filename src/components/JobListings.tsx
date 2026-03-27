@@ -69,12 +69,12 @@ export default function JobListings({ locale = "es" }: JobListingsProps) {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder={locale === "es" ? "🔍 Buscar ofertas..." : "🔍 Search jobs..."}
-          className="flex-1 px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none"
+          className="flex-1 px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
         />
         <select
           value={typeFilter}
           onChange={(e) => setTypeFilter(e.target.value)}
-          className="px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white focus:border-purple-500 outline-none"
+          className="px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white focus:border-blue-500 outline-none"
         >
           <option value="">{locale === "es" ? "Todos los tipos" : "All types"}</option>
           <option value="full-time">{locale === "es" ? "Tiempo completo" : "Full-time"}</option>
@@ -87,7 +87,7 @@ export default function JobListings({ locale = "es" }: JobListingsProps) {
       {/* Results */}
       {loading ? (
         <div className="text-center py-12">
-          <div className="animate-spin inline-block w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full" />
+          <div className="animate-spin inline-block w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full" />
           <p className="text-gray-400 mt-3">
             {locale === "es" ? "Cargando ofertas..." : "Loading jobs..."}
           </p>
