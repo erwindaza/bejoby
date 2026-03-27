@@ -56,6 +56,7 @@ interface Job {
   location: string;
   salary_range: string;
   employment_type: string;
+  work_mode?: string;
   employer_name?: string;
   created_at: string;
 }
@@ -179,6 +180,7 @@ export default function HomePage() {
                 location={job.location}
                 salary_range={job.salary_range}
                 employment_type={job.employment_type}
+                work_mode={job.work_mode}
                 created_at={job.created_at}
                 locale={lang}
               />

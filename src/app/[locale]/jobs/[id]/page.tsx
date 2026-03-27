@@ -12,6 +12,7 @@ interface Job {
   location: string;
   salary_range: string;
   employment_type: string;
+  work_mode?: string;
   employer_id: string;
   language: string;
   status: string;
@@ -21,6 +22,11 @@ interface Job {
 const typeLabelsMap = {
   es: { "full-time": "Tiempo completo", "part-time": "Medio tiempo", contract: "Contrato", freelance: "Freelance" } as Record<string, string>,
   en: { "full-time": "Full-time", "part-time": "Part-time", contract: "Contract", freelance: "Freelance" } as Record<string, string>,
+};
+
+const workModeLabelsMap = {
+  es: { remote: "100% Remoto", hybrid: "Híbrido", "on-site": "Presencial" } as Record<string, string>,
+  en: { remote: "Remote", hybrid: "Hybrid", "on-site": "On-site" } as Record<string, string>,
 };
 
 const texts = {
@@ -35,6 +41,7 @@ const texts = {
     location: "Ubicación",
     locationNA: "No especificada",
     contractType: "Tipo de contrato",
+    workMode: "Modalidad",
     salary: "Salario",
     salaryNA: "A convenir",
     language: "Idioma",
@@ -54,6 +61,7 @@ const texts = {
     location: "Location",
     locationNA: "Not specified",
     contractType: "Contract type",
+    workMode: "Work mode",
     salary: "Salary",
     salaryNA: "To be discussed",
     language: "Language",
@@ -71,6 +79,7 @@ export default function JobDetailPage() {
   const lang = locale === "en" ? "en" : "es";
   const t = texts[lang];
   const typeLabels = typeLabelsMap[lang];
+  const workModeLabels = workModeLabelsMap[lang];
 
   const [job, setJob] = useState<Job | null>(null);
   const [loading, setLoading] = useState(true);
@@ -99,7 +108,7 @@ export default function JobDetailPage() {
     return (
       <main className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="w-10 h-10 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p className="text-gray-400">{t.loading}</p>
         </div>
       </main>
@@ -111,7 +120,7 @@ export default function JobDetailPage() {
       <main className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-white mb-4">{error || t.notFound}</h1>
-          <Link href={`/${locale}/jobs`} className="text-purple-400 hover:text-purple-300 underline">{t.back}</Link>
+          <Link href={`/${locale}/jobs`} className="text-blue-400 hover:text-blue-300 underline">{t.back}</Link>
         </div>
       </main>
     );
@@ -123,14 +132,15 @@ export default function JobDetailPage() {
 
   return (
     <main className="min-h-screen pb-24">
-      <section className="pt-28 pb-12 bg-gradient-to-r from-indigo-700 to-purple-700 text-white px-4">
+      <section className="pt-24 pb-12 bg-gradient-to-b from-blue-950/60 to-transparent text-white px-4">
         <div className="max-w-4xl mx-auto">
-          <Link href={`/${locale}/jobs`} className="text-indigo-200 hover:text-white text-sm mb-4 inline-block">{t.back}</Link>
+          <Link href={`/${locale}/jobs`} className="text-slate-400 hover:text-white text-sm mb-4 inline-block">{t.back}</Link>
           <h1 className="text-3xl md:text-4xl font-extrabold mb-3">{job.title}</h1>
-          <div className="flex flex-wrap gap-4 text-sm text-indigo-100/80">
+          <div className="flex flex-wrap gap-4 text-sm text-slate-400">
             {job.location && <span>📍 {job.location}</span>}
             {job.salary_range && <span>💰 {job.salary_range}</span>}
             <span>📋 {typeLabels[job.employment_type] || job.employment_type}</span>
+            {job.work_mode && <span>🏢 {workModeLabels[job.work_mode] || job.work_mode}</span>}
             {date && <span>📅 {t.published}: {date}</span>}
           </div>
         </div>
@@ -159,6 +169,12 @@ export default function JobDetailPage() {
                   <dt className="text-gray-500">{t.contractType}</dt>
                   <dd className="text-white">{typeLabels[job.employment_type] || job.employment_type}</dd>
                 </div>
+                {job.work_mode && (
+                <div>
+                  <dt className="text-gray-500">{t.workMode}</dt>
+                  <dd className="text-white">{workModeLabels[job.work_mode] || job.work_mode}</dd>
+                </div>
+                )}
                 <div>
                   <dt className="text-gray-500">{t.salary}</dt>
                   <dd className="text-white">{job.salary_range || t.salaryNA}</dd>
@@ -171,7 +187,7 @@ export default function JobDetailPage() {
             </div>
 
             {!applied && !showApply && (
-              <button onClick={() => setShowApply(true)} className="w-full py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold rounded-xl transition-all text-center">
+              <button onClick={() => setShowApply(true)} className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition-all text-center">
                 {t.apply}
               </button>
             )}
