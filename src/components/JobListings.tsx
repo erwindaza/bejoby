@@ -11,6 +11,7 @@ interface Job {
   location: string;
   salary_range: string;
   employment_type: string;
+  work_mode?: string;
   employer_id: string;
   employer_name?: string;
   language: string;
@@ -27,12 +28,14 @@ export default function JobListings({ locale = "es" }: JobListingsProps) {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
+  const [modeFilter, setModeFilter] = useState("");
 
   const fetchJobs = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams({ status: "published" });
       if (typeFilter) params.set("employment_type", typeFilter);
+      if (modeFilter) params.set("work_mode", modeFilter);
 
       const res = await fetch(`/api/jobs?${params}`);
       const data = await res.json();
@@ -44,7 +47,7 @@ export default function JobListings({ locale = "es" }: JobListingsProps) {
     } finally {
       setLoading(false);
     }
-  }, [typeFilter]);
+  }, [typeFilter, modeFilter]);
 
   useEffect(() => {
     fetchJobs();
@@ -82,6 +85,16 @@ export default function JobListings({ locale = "es" }: JobListingsProps) {
           <option value="contract">{locale === "es" ? "Contrato" : "Contract"}</option>
           <option value="freelance">Freelance</option>
         </select>
+        <select
+          value={modeFilter}
+          onChange={(e) => setModeFilter(e.target.value)}
+          className="px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white focus:border-blue-500 outline-none"
+        >
+          <option value="">{locale === "es" ? "Todas las modalidades" : "All work modes"}</option>
+          <option value="remote">{locale === "es" ? "100% Remoto" : "Remote"}</option>
+          <option value="hybrid">{locale === "es" ? "Híbrido" : "Hybrid"}</option>
+          <option value="on-site">{locale === "es" ? "Presencial" : "On-site"}</option>
+        </select>
       </div>
 
       {/* Results */}
@@ -113,6 +126,7 @@ export default function JobListings({ locale = "es" }: JobListingsProps) {
               location={job.location}
               salary_range={job.salary_range}
               employment_type={job.employment_type}
+              work_mode={job.work_mode}
               created_at={job.created_at}
               locale={locale}
             />

@@ -10,6 +10,7 @@ interface JobCardProps {
   location: string;
   salary_range: string;
   employment_type: string;
+  work_mode?: string;
   description: string;
   created_at: string;
   locale?: string;
@@ -30,6 +31,11 @@ const typeLabels: Record<string, Record<string, string>> = {
   },
 };
 
+const workModeLabels: Record<string, Record<string, string>> = {
+  es: { remote: "Remoto", hybrid: "Híbrido", "on-site": "Presencial" },
+  en: { remote: "Remote", hybrid: "Hybrid", "on-site": "On-site" },
+};
+
 export default function JobCard({
   id,
   title,
@@ -37,11 +43,13 @@ export default function JobCard({
   location,
   salary_range,
   employment_type,
+  work_mode,
   description,
   created_at,
   locale = "es",
 }: JobCardProps) {
   const typeLabel = typeLabels[locale]?.[employment_type] || employment_type;
+  const modeLabel = work_mode ? (workModeLabels[locale]?.[work_mode] || work_mode) : null;
   const date = created_at
     ? new Date(created_at).toLocaleDateString(locale === "es" ? "es-CL" : "en-US", {
         day: "numeric",
@@ -64,6 +72,11 @@ export default function JobCard({
         <span className="px-3 py-1 bg-blue-600/20 text-blue-300 text-xs font-medium rounded-full whitespace-nowrap">
           {typeLabel}
         </span>
+        {modeLabel && (
+        <span className="px-3 py-1 bg-emerald-600/20 text-emerald-300 text-xs font-medium rounded-full whitespace-nowrap">
+          {modeLabel}
+        </span>
+        )}
       </div>
 
       <p className="text-gray-400 text-sm line-clamp-2 mb-4">

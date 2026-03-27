@@ -39,6 +39,10 @@ const t = {
     typePartTime: "Medio tiempo",
     typeContract: "Contrato",
     typeFreelance: "Freelance",
+    workMode: "Modalidad",
+    modeRemote: "100% Remoto",
+    modeHybrid: "Híbrido",
+    modeOnSite: "Presencial",
     language: "Idioma de la oferta",
     publishBtn: "Publicar oferta",
     publishing: "Publicando...",
@@ -80,6 +84,10 @@ const t = {
     typePartTime: "Part-time",
     typeContract: "Contract",
     typeFreelance: "Freelance",
+    workMode: "Work mode",
+    modeRemote: "Remote",
+    modeHybrid: "Hybrid",
+    modeOnSite: "On-site",
     language: "Job language",
     publishBtn: "Publish job",
     publishing: "Publishing...",
@@ -130,7 +138,7 @@ export default function PostJobPage() {
   // Job form
   const [job, setJob] = useState({
     title: "", description: "", location: "", salary_range: "",
-    employment_type: "full-time", language: lang, status: "published" as const,
+    employment_type: "full-time", work_mode: "on-site", language: lang, status: "published" as const,
   });
 
   useEffect(() => {
@@ -198,7 +206,7 @@ export default function PostJobPage() {
       const data = await res.json();
       if (data.ok) {
         setStep("success");
-        setJob({ title: "", description: "", location: "", salary_range: "", employment_type: "full-time", language: lang, status: "published" });
+        setJob({ title: "", description: "", location: "", salary_range: "", employment_type: "full-time", work_mode: "on-site", language: lang, status: "published" });
         fetch("/api/events", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -301,7 +309,7 @@ export default function PostJobPage() {
                 <input name="salary_range" value={job.salary_range} onChange={handleJobChange} placeholder={l.salaryPh} className={inputCls} />
               </div>
             </div>
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-4 sm:grid-cols-3">
               <div>
                 <label className="block text-sm text-slate-300 mb-1">{l.type}</label>
                 <select name="employment_type" value={job.employment_type} onChange={handleJobChange} className={inputCls}>
@@ -309,6 +317,14 @@ export default function PostJobPage() {
                   <option value="part-time">{l.typePartTime}</option>
                   <option value="contract">{l.typeContract}</option>
                   <option value="freelance">{l.typeFreelance}</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm text-slate-300 mb-1">{l.workMode}</label>
+                <select name="work_mode" value={job.work_mode} onChange={handleJobChange} className={inputCls}>
+                  <option value="on-site">{l.modeOnSite}</option>
+                  <option value="hybrid">{l.modeHybrid}</option>
+                  <option value="remote">{l.modeRemote}</option>
                 </select>
               </div>
               <div>

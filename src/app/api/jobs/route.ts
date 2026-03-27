@@ -11,12 +11,14 @@ export async function GET(req: Request) {
     const status = searchParams.get("status");
     const language = searchParams.get("language");
     const employer_id = searchParams.get("employer_id");
+    const work_mode = searchParams.get("work_mode");
 
     let query: Query = jobs().orderBy("created_at", "desc");
 
     if (status) query = query.where("status", "==", status);
     if (language) query = query.where("language", "==", language);
     if (employer_id) query = query.where("employer_id", "==", employer_id);
+    if (work_mode) query = query.where("work_mode", "==", work_mode);
 
     const snapshot = await query.get();
     const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
