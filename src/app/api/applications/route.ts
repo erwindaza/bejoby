@@ -49,6 +49,7 @@ export async function POST(req: Request) {
       candidate_name: parsed.data.candidate_name,
       candidate_email: parsed.data.candidate_email,
       message: parsed.data.message,
+      cv_filename: parsed.data.cv_filename || undefined,
     }).catch(() => {});
 
     return created({ id: docRef.id, ...parsed.data, status: "pending" });

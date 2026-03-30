@@ -1,7 +1,7 @@
 // src/components/JobApplyForm.tsx
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useState, useRef, FormEvent } from "react";
 import ConsentCheckbox from "./ConsentCheckbox";
 
 interface JobApplyFormProps {
@@ -21,6 +21,9 @@ export default function JobApplyForm({ jobId, jobTitle, locale = "es", onSuccess
     consent_privacy: false,
     consent_data_processing: false,
   });
+  const [cvFile, setCvFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -29,10 +32,16 @@ export default function JobApplyForm({ jobId, jobTitle, locale = "es", onSuccess
     name: "Nombre completo",
     email: "Email",
     linkedin: "LinkedIn (opcional)",
+    cv: "CV (PDF o DOCX)",
+    cvHint: "Máximo 5 MB",
+    cvSelected: "Archivo seleccionado:",
+    cvChange: "Cambiar",
+    cvRemove: "Quitar",
     message: "Carta de presentación / Mensaje",
     messagePlaceholder: "¿Por qué te interesa este puesto? Cuéntanos sobre tu experiencia...",
     submit: "Enviar postulación",
     submitting: "Enviando...",
+    uploadingCV: "Subiendo CV...",
     success: "¡Postulación enviada!",
     successMsg: "Tu postulación ha sido recibida. La empresa revisará tu perfil.",
     consentShare: "Autorizo compartir mis datos (nombre, email, CV) con la empresa que publicó esta oferta",
@@ -40,15 +49,22 @@ export default function JobApplyForm({ jobId, jobTitle, locale = "es", onSuccess
     consentData: "Autorizo el tratamiento de mis datos personales para este proceso de selección",
     privacyLink: "Política de Privacidad",
     requiredConsents: "Debes aceptar todos los consentimientos para postular",
+    invalidFile: "Solo se aceptan archivos PDF o DOCX (máximo 5 MB)",
   } : {
     title: `Apply to: ${jobTitle}`,
     name: "Full name",
     email: "Email",
     linkedin: "LinkedIn (optional)",
+    cv: "Resume (PDF or DOCX)",
+    cvHint: "Max 5 MB",
+    cvSelected: "File selected:",
+    cvChange: "Change",
+    cvRemove: "Remove",
     message: "Cover letter / Message",
     messagePlaceholder: "Why are you interested in this role? Tell us about your experience...",
     submit: "Submit application",
     submitting: "Submitting...",
+    uploadingCV: "Uploading resume...",
     success: "Application submitted!",
     successMsg: "Your application has been received. The company will review your profile.",
     consentShare: "I authorize sharing my data (name, email, CV) with the company that posted this job",
@@ -56,10 +72,30 @@ export default function JobApplyForm({ jobId, jobTitle, locale = "es", onSuccess
     consentData: "I authorize the processing of my personal data for this selection process",
     privacyLink: "Privacy Policy",
     requiredConsents: "You must accept all consents to apply",
+    invalidFile: "Only PDF and DOCX files accepted (max 5 MB)",
   };
+
+  const ALLOWED_TYPES = [
+    "application/pdf",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  ];
+  const MAX_SIZE = 5 * 1024 * 1024;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!ALLOWED_TYPES.includes(file.type) || file.size > MAX_SIZE) {
+      setErrorMsg(t.invalidFile);
+      e.target.value = "";
+      return;
+    }
+    setErrorMsg("");
+    setCvFile(file);
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -102,7 +138,7 @@ export default function JobApplyForm({ jobId, jobTitle, locale = "es", onSuccess
         }
       }
 
-      // Submit application  
+      // Submit application first to get the ID
       const appRes = await fetch("/api/applications", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -117,13 +153,43 @@ export default function JobApplyForm({ jobId, jobTitle, locale = "es", onSuccess
         }),
       });
       const appData = await appRes.json();
-      if (appData.ok) {
-        setStatus("success");
-        onSuccess?.();
-      } else {
+      if (!appData.ok) {
         setErrorMsg(appData.error || "Error");
         setStatus("error");
+        return;
       }
+
+      const applicationId = appData.data.id;
+
+      // Upload CV if provided
+      if (cvFile) {
+        setUploadProgress(t.uploadingCV);
+        const formData = new FormData();
+        formData.append("file", cvFile);
+        formData.append("application_id", applicationId);
+
+        const uploadRes = await fetch("/api/cv/upload", {
+          method: "POST",
+          body: formData,
+        });
+        const uploadData = await uploadRes.json();
+
+        if (uploadData.ok) {
+          // Update application with CV path
+          await fetch(`/api/applications/${applicationId}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              cv_path: uploadData.data.path,
+              cv_filename: cvFile.name,
+            }),
+          });
+        }
+        setUploadProgress("");
+      }
+
+      setStatus("success");
+      onSuccess?.();
     } catch {
       setErrorMsg(locale === "es" ? "Error de conexión" : "Connection error");
       setStatus("error");
@@ -179,6 +245,50 @@ export default function JobApplyForm({ jobId, jobTitle, locale = "es", onSuccess
         />
       </div>
 
+      {/* CV Upload */}
+      <div>
+        <label className="block text-sm font-medium text-gray-300 mb-1">
+          {t.cv}
+          <span className="text-gray-500 font-normal ml-2">({t.cvHint})</span>
+        </label>
+        {!cvFile ? (
+          <div
+            onClick={() => fileInputRef.current?.click()}
+            className="w-full px-4 py-6 bg-gray-800 border-2 border-dashed border-gray-600 rounded-lg text-center cursor-pointer hover:border-blue-500 hover:bg-gray-800/80 transition"
+          >
+            <div className="text-3xl mb-2">📄</div>
+            <p className="text-gray-400 text-sm">
+              {locale === "es"
+                ? "Haz clic para seleccionar tu CV"
+                : "Click to select your resume"}
+            </p>
+            <p className="text-gray-500 text-xs mt-1">PDF, DOC, DOCX</p>
+          </div>
+        ) : (
+          <div className="flex items-center gap-3 px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg">
+            <span className="text-2xl">📎</span>
+            <div className="flex-1 min-w-0">
+              <p className="text-white text-sm truncate">{cvFile.name}</p>
+              <p className="text-gray-500 text-xs">{(cvFile.size / 1024).toFixed(0)} KB</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => { setCvFile(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}
+              className="text-red-400 hover:text-red-300 text-sm"
+            >
+              {t.cvRemove}
+            </button>
+          </div>
+        )}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+          onChange={handleFileChange}
+          className="hidden"
+        />
+      </div>
+
       <div>
         <label className="block text-sm font-medium text-gray-300 mb-1">{t.message}</label>
         <textarea
@@ -218,6 +328,7 @@ export default function JobApplyForm({ jobId, jobTitle, locale = "es", onSuccess
       </div>
 
       {errorMsg && <p className="text-red-400 text-sm">{errorMsg}</p>}
+      {uploadProgress && <p className="text-blue-400 text-sm">{uploadProgress}</p>}
 
       <button
         type="submit"

@@ -43,3 +43,34 @@ export async function PUT(req: Request, { params }: Params) {
     return serverError();
   }
 }
+
+// PATCH /api/applications/:id — Partial update (e.g. attach CV info)
+export async function PATCH(req: Request, { params }: Params) {
+  try {
+    const { id } = await params;
+    const doc = await applications().doc(id).get();
+    if (!doc.exists) return notFound("Application");
+
+    const body = await req.json().catch(() => null);
+    if (!body) return error("Invalid request body");
+
+    // Only allow updating specific fields
+    const allowed: Record<string, unknown> = {};
+    if (typeof body.cv_path === "string") allowed.cv_path = body.cv_path;
+    if (typeof body.cv_filename === "string") allowed.cv_filename = body.cv_filename;
+
+    if (Object.keys(allowed).length === 0) {
+      return error("Nothing to update");
+    }
+
+    await applications().doc(id).update({
+      ...allowed,
+      updated_at: FieldValue.serverTimestamp(),
+    });
+
+    return success({ id, ...allowed });
+  } catch (err) {
+    console.error("[PATCH /api/applications/:id]", err);
+    return serverError();
+  }
+}

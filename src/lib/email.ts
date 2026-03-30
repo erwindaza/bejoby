@@ -110,8 +110,12 @@ export async function notifyApplicationReceived(application: {
   candidate_name: string;
   candidate_email: string;
   message?: string;
+  cv_filename?: string;
 }) {
   const jobUrl = `https://www.bejoby.com/es/jobs/${application.job_id}`;
+  const cvRow = application.cv_filename
+    ? `<tr><td style="padding:6px 12px;color:#666">CV adjunto</td><td style="padding:6px 12px">📎 ${application.cv_filename}</td></tr>`
+    : "";
   await send(
     `📨 Nueva postulación: ${application.candidate_name} → ${application.job_title}`,
     `
@@ -122,6 +126,7 @@ export async function notifyApplicationReceived(application: {
         <tr><td style="padding:6px 12px;color:#666">Email</td><td style="padding:6px 12px"><a href="mailto:${application.candidate_email}">${application.candidate_email}</a></td></tr>
         <tr><td style="padding:6px 12px;color:#666">Oferta</td><td style="padding:6px 12px">${application.job_title}</td></tr>
         ${application.message ? `<tr><td style="padding:6px 12px;color:#666">Mensaje</td><td style="padding:6px 12px">${application.message}</td></tr>` : ""}
+        ${cvRow}
         <tr><td style="padding:6px 12px;color:#666">ID postulación</td><td style="padding:6px 12px;font-size:12px;color:#999">${application.id}</td></tr>
       </table>
       <p style="margin-top:16px"><a href="${jobUrl}" style="color:#2563eb">Ver oferta →</a></p>
