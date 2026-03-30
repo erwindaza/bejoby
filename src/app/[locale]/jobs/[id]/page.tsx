@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import JobApplyForm from "@/components/JobApplyForm";
+import { useAuth } from "@/components/AuthProvider";
 
 interface Job {
   id: string;
@@ -49,6 +50,10 @@ const texts = {
     langEn: "English",
     apply: "Postularme a esta oferta",
     applied: "✅ Postulación enviada",
+    deleteJob: "Eliminar oferta",
+    deleteConfirm: "¿Estás seguro de que deseas eliminar esta oferta? Esta acción no se puede deshacer.",
+    deleting: "Eliminando...",
+    deleted: "Oferta eliminada",
   },
   en: {
     loading: "Loading job...",
@@ -69,23 +74,51 @@ const texts = {
     langEn: "English",
     apply: "Apply to this job",
     applied: "✅ Application submitted",
+    deleteJob: "Delete job",
+    deleteConfirm: "Are you sure you want to delete this job? This action cannot be undone.",
+    deleting: "Deleting...",
+    deleted: "Job deleted",
   },
 };
 
 export default function JobDetailPage() {
   const params = useParams<{ locale: string; id: string }>();
+  const router = useRouter();
   const locale = params.locale;
   const jobId = params.id;
   const lang = locale === "en" ? "en" : "es";
   const t = texts[lang];
   const typeLabels = typeLabelsMap[lang];
   const workModeLabels = workModeLabelsMap[lang];
+  const { user } = useAuth();
 
   const [job, setJob] = useState<Job | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showApply, setShowApply] = useState(false);
   const [applied, setApplied] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const canDelete = user && job && user.employer_id === job.employer_id;
+
+  const handleDelete = async () => {
+    if (!job) return;
+    if (!confirm(t.deleteConfirm)) return;
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/jobs/${job.id}`, { method: "DELETE" });
+      const data = await res.json();
+      if (data.ok) {
+        router.push(`/${locale}/jobs`);
+      } else {
+        alert(data.error || "Error");
+      }
+    } catch {
+      alert("Error");
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const fetchJob = useCallback(async () => {
     try {
@@ -196,6 +229,16 @@ export default function JobDetailPage() {
               <div className="p-4 bg-green-600/20 border border-green-500/30 rounded-xl text-center">
                 <p className="text-green-300 font-semibold">{t.applied}</p>
               </div>
+            )}
+
+            {canDelete && (
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="w-full py-3 bg-red-600/20 hover:bg-red-600/30 text-red-400 hover:text-red-300 border border-red-600/30 font-semibold rounded-xl transition-all text-center disabled:opacity-50"
+              >
+                {deleting ? t.deleting : t.deleteJob}
+              </button>
             )}
           </div>
         </div>

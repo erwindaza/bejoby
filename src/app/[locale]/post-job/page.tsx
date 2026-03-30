@@ -1,10 +1,11 @@
-// src/app/[locale]/post-job/page.tsx — Employer registration + job posting in one flow
+// src/app/[locale]/post-job/page.tsx — Employer registration + job posting with auth
 "use client";
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import ConsentCheckbox from "@/components/ConsentCheckbox";
+import { useAuth } from "@/components/AuthProvider";
 
 const t = {
   es: {
@@ -53,6 +54,9 @@ const t = {
     viewJobs: "Ver ofertas",
     // Errors
     connectionError: "Error de conexión. Intenta de nuevo.",
+    // Auth required
+    loginRequired: "Debes iniciar sesión para publicar ofertas",
+    loginBtn: "Iniciar sesión",
   },
   en: {
     heroTitle: "Post a job listing",
@@ -96,6 +100,8 @@ const t = {
     postAnother: "Post another job",
     viewJobs: "View jobs",
     connectionError: "Connection error. Please try again.",
+    loginRequired: "You must sign in to post jobs",
+    loginBtn: "Sign in",
   },
 };
 
@@ -123,6 +129,7 @@ export default function PostJobPage() {
   const { locale } = useParams<{ locale: string }>();
   const lang = locale === "en" ? "en" : "es";
   const l = t[lang];
+  const { user, loading: authLoading, openLogin, refresh } = useAuth();
 
   const [step, setStep] = useState<"register" | "post" | "success">("register");
   const [employerId, setEmployerId] = useState<string | null>(null);
@@ -141,10 +148,19 @@ export default function PostJobPage() {
     employment_type: "full-time", work_mode: "on-site", language: lang, status: "published" as const,
   });
 
+  // Set step based on auth state
   useEffect(() => {
-    const saved = localStorage.getItem("bejoby_employer_id");
-    if (saved) { setEmployerId(saved); setStep("post"); }
-  }, []);
+    if (!authLoading && user) {
+      if (user.employer_id) {
+        setEmployerId(user.employer_id);
+        setStep("post");
+      } else {
+        // User logged in but no employer yet — pre-fill email
+        setEmp((prev) => ({ ...prev, email: user.email }));
+        setStep("register");
+      }
+    }
+  }, [user, authLoading]);
 
   useEffect(() => {
     fetch("/api/events", {
@@ -175,7 +191,13 @@ export default function PostJobPage() {
       });
       const data = await res.json();
       if (data.ok) {
-        localStorage.setItem("bejoby_employer_id", data.data.id);
+        // Link employer to user account
+        await fetch("/api/auth/me", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ employer_id: data.data.id }),
+        });
+        await refresh();
         setEmployerId(data.data.id);
         setStep("post");
         fetch("/api/events", {
@@ -237,8 +259,29 @@ export default function PostJobPage() {
       </section>
 
       <section className="max-w-xl mx-auto px-4 py-8">
+        {/* Auth gate: must be logged in */}
+        {!authLoading && !user && (
+          <div className="text-center py-16">
+            <div className="text-5xl mb-4">🔒</div>
+            <h2 className="text-2xl font-bold text-white mb-3">{l.loginRequired}</h2>
+            <button
+              onClick={openLogin}
+              className="mt-4 px-8 py-3 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl transition"
+            >
+              {l.loginBtn}
+            </button>
+          </div>
+        )}
+
+        {/* Loading auth state */}
+        {authLoading && (
+          <div className="text-center py-16">
+            <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto" />
+          </div>
+        )}
+
         {/* Step 1: Employer registration */}
-        {step === "register" && !employerId && (
+        {!authLoading && user && step === "register" && !employerId && (
           <form onSubmit={submitEmployer} className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
@@ -289,7 +332,7 @@ export default function PostJobPage() {
         )}
 
         {/* Step 2: Job posting */}
-        {step === "post" && employerId && (
+        {!authLoading && user && step === "post" && employerId && (
           <form onSubmit={submitJob} className="space-y-4">
             <div>
               <label className="block text-sm text-slate-300 mb-1">{l.jobTitle}</label>

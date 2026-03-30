@@ -25,3 +25,6 @@ export const candidates = () => collection("candidates");
 export const applications = () => collection("applications");
 export const contactForms = () => collection("contact_forms");
 export const events = () => collection("events");
+export const users = () => collection("users");
+export const sessions = () => collection("sessions");
+export const otps = () => collection("otps");

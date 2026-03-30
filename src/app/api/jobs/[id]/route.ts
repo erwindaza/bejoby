@@ -3,6 +3,7 @@ import { jobs } from "@/lib/gcp/collections";
 import { updateJobSchema } from "@/lib/validators/job";
 import { success, error, notFound, serverError } from "@/lib/utils/api-response";
 import { FieldValue } from "@google-cloud/firestore";
+import { getSessionUser } from "@/lib/auth";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -44,12 +45,23 @@ export async function PUT(req: Request, { params }: Params) {
   }
 }
 
-// DELETE /api/jobs/:id
+// DELETE /api/jobs/:id — Auth-protected: only job owner can delete
 export async function DELETE(_req: Request, { params }: Params) {
   try {
     const { id } = await params;
+
+    // Require authentication
+    const user = await getSessionUser();
+    if (!user) return error("Debes iniciar sesión", 401);
+
     const doc = await jobs().doc(id).get();
     if (!doc.exists) return notFound("Job");
+
+    // Verify ownership: user's employer_id must match job's employer_id
+    const jobData = doc.data()!;
+    if (!user.employer_id || jobData.employer_id !== user.employer_id) {
+      return error("No autorizado para eliminar esta oferta", 403);
+    }
 
     await jobs().doc(id).delete();
     return success({ id, deleted: true });
