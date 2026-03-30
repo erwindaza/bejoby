@@ -133,3 +133,91 @@ export async function notifyApplicationReceived(application: {
     </div>`,
   );
 }
+
+export async function sendAnalysisReport(data: {
+  candidate_name: string;
+  candidate_email: string;
+  job_title: string;
+  job_id: string;
+  cv_filename: string;
+  analysis: {
+    score: number;
+    summary: string;
+    strengths: string[];
+    gaps: string[];
+    recommendation: string;
+  };
+}) {
+  const { analysis } = data;
+  const jobUrl = `https://www.bejoby.com/es/jobs/${data.job_id}`;
+
+  // Color based on score
+  const scoreColor =
+    analysis.score >= 70 ? "#16a34a" : analysis.score >= 40 ? "#d97706" : "#dc2626";
+  const scoreBg =
+    analysis.score >= 70 ? "#dcfce7" : analysis.score >= 40 ? "#fef3c7" : "#fee2e2";
+  const scoreEmoji =
+    analysis.score >= 70 ? "🟢" : analysis.score >= 40 ? "🟡" : "🔴";
+
+  const strengthsHtml = analysis.strengths
+    .map((s) => `<li style="margin-bottom:4px;color:#16a34a">✅ ${s}</li>`)
+    .join("");
+  const gapsHtml = analysis.gaps
+    .map((g) => `<li style="margin-bottom:4px;color:#dc2626">⚠️ ${g}</li>`)
+    .join("");
+
+  await send(
+    `${scoreEmoji} Análisis IA: ${data.candidate_name} → ${analysis.score}% calce`,
+    `
+    <div style="font-family:sans-serif;max-width:600px">
+      <h2 style="color:#2563eb">🤖 Análisis IA — BeJoby</h2>
+
+      <!-- Score badge -->
+      <div style="text-align:center;margin:20px 0">
+        <div style="display:inline-block;background:${scoreBg};border-radius:16px;padding:16px 32px">
+          <span style="font-size:48px;font-weight:bold;color:${scoreColor}">${analysis.score}%</span>
+          <br/>
+          <span style="font-size:14px;color:#666">compatibilidad candidato-cargo</span>
+        </div>
+      </div>
+
+      <!-- Candidate info -->
+      <table style="border-collapse:collapse;width:100%;margin-bottom:16px">
+        <tr><td style="padding:6px 12px;color:#666">Candidato</td><td style="padding:6px 12px;font-weight:bold">${data.candidate_name}</td></tr>
+        <tr><td style="padding:6px 12px;color:#666">Email</td><td style="padding:6px 12px"><a href="mailto:${data.candidate_email}">${data.candidate_email}</a></td></tr>
+        <tr><td style="padding:6px 12px;color:#666">Oferta</td><td style="padding:6px 12px"><a href="${jobUrl}">${data.job_title}</a></td></tr>
+        ${data.cv_filename ? `<tr><td style="padding:6px 12px;color:#666">CV</td><td style="padding:6px 12px">📎 ${data.cv_filename}</td></tr>` : ""}
+      </table>
+
+      <!-- Summary -->
+      <div style="background:#f1f5f9;border-radius:8px;padding:16px;margin-bottom:16px">
+        <strong style="color:#1e293b">Resumen ejecutivo:</strong>
+        <p style="color:#475569;margin:8px 0 0">${analysis.summary}</p>
+      </div>
+
+      <!-- Strengths -->
+      ${strengthsHtml ? `
+      <div style="margin-bottom:12px">
+        <strong style="color:#16a34a">Fortalezas:</strong>
+        <ul style="padding-left:20px;margin:8px 0">${strengthsHtml}</ul>
+      </div>` : ""}
+
+      <!-- Gaps -->
+      ${gapsHtml ? `
+      <div style="margin-bottom:12px">
+        <strong style="color:#dc2626">Brechas:</strong>
+        <ul style="padding-left:20px;margin:8px 0">${gapsHtml}</ul>
+      </div>` : ""}
+
+      <!-- Recommendation -->
+      <div style="background:#eff6ff;border-left:4px solid #2563eb;padding:12px 16px;border-radius:0 8px 8px 0;margin-top:16px">
+        <strong style="color:#2563eb">📋 Recomendación:</strong>
+        <p style="color:#1e40af;margin:8px 0 0">${analysis.recommendation}</p>
+      </div>
+
+      <p style="margin-top:24px;color:#999;font-size:12px;text-align:center">
+        Análisis generado automáticamente por IA (Gemini). Usar como apoyo, no como decisión final.
+      </p>
+    </div>`,
+  );
+}

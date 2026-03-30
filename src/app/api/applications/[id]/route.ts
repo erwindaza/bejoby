@@ -1,8 +1,10 @@
 // src/app/api/applications/[id]/route.ts
-import { applications } from "@/lib/gcp/collections";
+import { applications, jobs } from "@/lib/gcp/collections";
 import { updateApplicationSchema } from "@/lib/validators/application";
 import { success, error, notFound, serverError } from "@/lib/utils/api-response";
 import { FieldValue } from "@google-cloud/firestore";
+import { analyzeApplication } from "@/lib/ai/match-analysis";
+import { sendAnalysisReport } from "@/lib/email";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -67,6 +69,36 @@ export async function PATCH(req: Request, { params }: Params) {
       ...allowed,
       updated_at: FieldValue.serverTimestamp(),
     });
+
+    // Fire-and-forget: if CV was just attached, run AI analysis
+    if (allowed.cv_path) {
+      (async () => {
+        try {
+          const analysis = await analyzeApplication(id);
+          if (analysis) {
+            // Fetch updated application data for the email
+            const updatedDoc = await applications().doc(id).get();
+            const appData = updatedDoc.data();
+            if (appData) {
+              // Fetch job title
+              const jobDoc = await jobs().doc(appData.job_id).get();
+              const jobTitle = jobDoc.exists ? jobDoc.data()?.title || appData.job_id : appData.job_id;
+
+              await sendAnalysisReport({
+                candidate_name: appData.candidate_name,
+                candidate_email: appData.candidate_email,
+                job_title: jobTitle,
+                job_id: appData.job_id,
+                cv_filename: appData.cv_filename || "",
+                analysis,
+              });
+            }
+          }
+        } catch (err) {
+          console.error("[PATCH] AI analysis fire-and-forget error:", err);
+        }
+      })();
+    }
 
     return success({ id, ...allowed });
   } catch (err) {
