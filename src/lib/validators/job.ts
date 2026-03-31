@@ -24,4 +24,25 @@ export const createJobSchema = z.object({
   search_tags: z.array(z.string().max(50)).max(100).optional(),
 });
 
-export const updateJobSchema = createJobSchema.omit({ employer_id: true }).partial();
+// For updates: all fields optional, no defaults (only update what's provided)
+export const updateJobSchema = z.object({
+  title: z.string().min(1).max(200).optional(),
+  subtitle: z.string().max(300).optional(),
+  slug: z.string().max(200).optional(),
+  company_display: z.string().max(200).optional(),
+  description: z.string().min(1).max(10000).optional(),
+  location: z.string().max(200).optional(),
+  salary_range: z.string().max(100).optional(),
+  seniority: z.string().max(100).optional(),
+  experience_years: z.string().max(20).optional(),
+  employment_type: z.enum(["full-time", "part-time", "contract", "freelance"]).optional(),
+  work_mode: z.enum(["remote", "hybrid", "on-site"]).optional(),
+  language: z.enum(["es", "en"]).optional(),
+  status: z.enum(["draft", "published", "closed"]).optional(),
+  stack: z.record(z.string(), z.array(z.string())).optional(),
+  requirements_mandatory: z.array(z.string()).optional(),
+  requirements_nice_to_have: z.array(z.string()).optional(),
+  responsibilities: z.array(z.string()).optional(),
+  what_we_offer: z.array(z.string()).optional(),
+  search_tags: z.array(z.string().max(50)).max(100).optional(),
+});
