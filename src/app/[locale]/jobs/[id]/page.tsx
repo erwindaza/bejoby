@@ -9,15 +9,24 @@ import { useAuth } from "@/components/AuthProvider";
 interface Job {
   id: string;
   title: string;
+  subtitle?: string;
+  company_display?: string;
   description: string;
   location: string;
   salary_range: string;
+  seniority?: string;
+  experience_years?: string;
   employment_type: string;
   work_mode?: string;
   employer_id: string;
   language: string;
   status: string;
   created_at: string;
+  stack?: Record<string, string[]>;
+  requirements_mandatory?: string[];
+  requirements_nice_to_have?: string[];
+  responsibilities?: string[];
+  what_we_offer?: string[];
 }
 
 const typeLabelsMap = {
@@ -168,7 +177,9 @@ export default function JobDetailPage() {
       <section className="pt-24 pb-12 bg-gradient-to-b from-blue-950/60 to-transparent text-white px-4">
         <div className="max-w-4xl mx-auto">
           <Link href={`/${locale}/jobs`} className="text-slate-400 hover:text-white text-sm mb-4 inline-block">{t.back}</Link>
-          <h1 className="text-3xl md:text-4xl font-extrabold mb-3">{job.title}</h1>
+          <h1 className="text-3xl md:text-4xl font-extrabold mb-2">{job.title}</h1>
+          {job.subtitle && <p className="text-lg text-blue-300 mb-2">{job.subtitle}</p>}
+          {job.company_display && <p className="text-sm text-slate-400 mb-3">{job.company_display}</p>}
           <div className="flex flex-wrap gap-4 text-sm text-slate-400">
             {job.location && <span>📍 {job.location}</span>}
             {job.salary_range && <span>💰 {job.salary_range}</span>}
@@ -188,6 +199,73 @@ export default function JobDetailPage() {
                 <p key={i} className="text-gray-300 mb-3">{p}</p>
               ))}
             </div>
+
+            {/* Stack tecnológico */}
+            {job.stack && Object.keys(job.stack).length > 0 && (
+              <div className="mt-8">
+                <h2 className="text-xl font-bold text-white mb-4">🔧 {lang === "es" ? "Stack tecnológico" : "Tech Stack"}</h2>
+                <div className="space-y-3">
+                  {Object.entries(job.stack).map(([category, techs]) => (
+                    <div key={category}>
+                      <span className="text-sm font-medium text-blue-400 capitalize">{category}:</span>
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        {techs.map((tech, i) => (
+                          <span key={i} className="px-3 py-1 bg-gray-700/50 text-gray-300 text-sm rounded-full">{tech}</span>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Responsabilidades */}
+            {job.responsibilities && job.responsibilities.length > 0 && (
+              <div className="mt-8">
+                <h2 className="text-xl font-bold text-white mb-4">📋 {lang === "es" ? "Responsabilidades" : "Responsibilities"}</h2>
+                <ul className="space-y-2">
+                  {job.responsibilities.map((item, i) => (
+                    <li key={i} className="flex gap-2 text-gray-300"><span className="text-blue-400 mt-0.5">▸</span>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Requisitos excluyentes */}
+            {job.requirements_mandatory && job.requirements_mandatory.length > 0 && (
+              <div className="mt-8">
+                <h2 className="text-xl font-bold text-white mb-4">🎯 {lang === "es" ? "Requisitos" : "Requirements"}</h2>
+                <ul className="space-y-2">
+                  {job.requirements_mandatory.map((item, i) => (
+                    <li key={i} className="flex gap-2 text-gray-300"><span className="text-emerald-400 mt-0.5">✓</span>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Nice to have */}
+            {job.requirements_nice_to_have && job.requirements_nice_to_have.length > 0 && (
+              <div className="mt-6">
+                <h3 className="text-lg font-semibold text-white mb-3">✨ {lang === "es" ? "Deseable" : "Nice to have"}</h3>
+                <ul className="space-y-2">
+                  {job.requirements_nice_to_have.map((item, i) => (
+                    <li key={i} className="flex gap-2 text-gray-400"><span className="text-yellow-400 mt-0.5">○</span>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Qué ofrecemos */}
+            {job.what_we_offer && job.what_we_offer.length > 0 && (
+              <div className="mt-8">
+                <h2 className="text-xl font-bold text-white mb-4">🎁 {lang === "es" ? "Qué ofrecemos" : "What we offer"}</h2>
+                <ul className="space-y-2">
+                  {job.what_we_offer.map((item, i) => (
+                    <li key={i} className="flex gap-2 text-gray-300"><span className="text-green-400 mt-0.5">★</span>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
 
           <div className="space-y-6">
@@ -206,6 +284,18 @@ export default function JobDetailPage() {
                 <div>
                   <dt className="text-gray-500">{t.workMode}</dt>
                   <dd className="text-white">{workModeLabels[job.work_mode] || job.work_mode}</dd>
+                </div>
+                )}
+                {job.seniority && (
+                <div>
+                  <dt className="text-gray-500">{lang === "es" ? "Seniority" : "Seniority"}</dt>
+                  <dd className="text-white">{job.seniority}</dd>
+                </div>
+                )}
+                {job.experience_years && (
+                <div>
+                  <dt className="text-gray-500">{lang === "es" ? "Experiencia" : "Experience"}</dt>
+                  <dd className="text-white">{job.experience_years} {lang === "es" ? "años" : "years"}</dd>
                 </div>
                 )}
                 <div>

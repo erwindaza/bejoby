@@ -216,7 +216,9 @@ export async function sendAnalysisReport(data: {
       </div>
 
       <p style="margin-top:24px;color:#999;font-size:12px;text-align:center">
-        Análisis generado automáticamente por IA (Gemini). Usar como apoyo, no como decisión final.
+        ⚖️ Análisis generado automáticamente por IA (Gemini). Este informe es orientativo y NO constituye una decisión de contratación.
+        De acuerdo con la Ley 21.719 (Chile), el candidato tiene derecho a solicitar una revisión humana de cualquier decisión basada en tratamiento automatizado.
+        El análisis fue realizado con datos anonimizados. Use este informe como apoyo complementario, no como criterio único de selección.
       </p>
     </div>`,
   );

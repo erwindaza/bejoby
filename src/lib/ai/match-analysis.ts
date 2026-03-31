@@ -2,7 +2,9 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { Storage } from "@google-cloud/storage";
 import { parseServiceAccountKey } from "@/lib/gcp/firestore";
-import { applications, jobs } from "@/lib/gcp/collections";
+import { applications, jobs, aiAuditLog } from "@/lib/gcp/collections";
+import { anonymizeForLLM } from "@/lib/ai/anonymize";
+import { FieldValue } from "@google-cloud/firestore";
 import mammoth from "mammoth";
 
 const CV_BUCKET = process.env.GCS_CV_BUCKET || "bejoby-cvs";
@@ -57,7 +59,6 @@ async function analyzeWithGemini(
   cvText: string,
   jobTitle: string,
   jobDescription: string,
-  candidateName: string,
   candidateMessage: string,
 ): Promise<MatchAnalysis> {
   const apiKey = process.env.GEMINI_API_KEY;
@@ -69,18 +70,19 @@ async function analyzeWithGemini(
   const prompt = `Eres un experto reclutador senior con 20 años de experiencia en selección de personal.
 
 Analiza qué tanto calza este candidato con la oferta laboral. Sé honesto y directo.
+IMPORTANTE: Basa tu análisis SOLO en habilidades, experiencia profesional y competencias técnicas. NUNCA consideres género, edad, nacionalidad, estado civil, religión u otros datos personales sensibles.
 
 ## OFERTA LABORAL
 **Cargo:** ${jobTitle}
 **Descripción:**
 ${jobDescription}
 
-## CANDIDATO: ${candidateName}
+## CANDIDATO (datos anonimizados)
 
 ### CV del candidato:
-${cvText.slice(0, 8000)}
+${anonymizeForLLM(cvText.slice(0, 8000))}
 
-${candidateMessage ? `### Mensaje del candidato:\n${candidateMessage}` : ""}
+${candidateMessage ? `### Mensaje del candidato:\n${anonymizeForLLM(candidateMessage)}` : ""}
 
 ## INSTRUCCIONES
 Responde SOLO en formato JSON válido (sin markdown, sin \`\`\`):
@@ -158,13 +160,35 @@ export async function analyzeApplication(applicationId: string): Promise<MatchAn
       cvText,
       jobData.title,
       jobData.description,
-      appData.candidate_name,
       appData.message || "",
     );
 
     // Save analysis to application document
     await applications().doc(applicationId).update({
       ai_analysis: analysis,
+    });
+
+    // Audit log: immutable record of AI decision (Ley 21.719 compliance)
+    await aiAuditLog().add({
+      type: "match_analysis",
+      application_id: applicationId,
+      job_id: appData.job_id,
+      model: "gemini-1.5-flash",
+      model_version: "1.5",
+      input_summary: {
+        cv_length: cvText.length,
+        job_title: jobData.title,
+        had_message: !!appData.message,
+        pii_anonymized: true,
+      },
+      output: {
+        score: analysis.score,
+        strengths_count: analysis.strengths.length,
+        gaps_count: analysis.gaps.length,
+        recommendation: analysis.recommendation,
+      },
+      human_reviewed: false,
+      created_at: FieldValue.serverTimestamp(),
     });
 
     console.log(`[AI] Analysis complete for ${appData.candidate_name}: score=${analysis.score}/100`);

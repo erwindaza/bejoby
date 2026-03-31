@@ -28,3 +28,5 @@ export const events = () => collection("events");
 export const users = () => collection("users");
 export const sessions = () => collection("sessions");
 export const otps = () => collection("otps");
+export const aiAuditLog = () => collection("ai_audit_log");
+export const dataRequests = () => collection("data_requests");

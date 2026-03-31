@@ -7,6 +7,7 @@ import JobCard from "./JobCard";
 interface Job {
   id: string;
   title: string;
+  subtitle?: string;
   description: string;
   location: string;
   salary_range: string;
@@ -14,9 +15,14 @@ interface Job {
   work_mode?: string;
   employer_id: string;
   employer_name?: string;
+  company_display?: string;
   language: string;
   status: string;
   created_at: string;
+  search_tags?: string[];
+  stack?: Record<string, string[]>;
+  seniority?: string;
+  requirements_mandatory?: string[];
 }
 
 interface JobListingsProps {
@@ -53,15 +59,36 @@ export default function JobListings({ locale = "es" }: JobListingsProps) {
     fetchJobs();
   }, [fetchJobs]);
 
+  /** Normalize text: lowercase + strip diacritics */
+  const normalize = (str: string) =>
+    str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+  /** Build a single searchable string for a job */
+  const buildSearchable = (job: Job): string => {
+    const parts = [
+      job.title,
+      job.subtitle || "",
+      job.description,
+      job.location,
+      job.seniority || "",
+      ...(job.search_tags || []),
+      ...(job.requirements_mandatory || []),
+      ...Object.values(job.stack || {}).flat(),
+    ];
+    return normalize(parts.join(" "));
+  };
+
   const filtered = jobs.filter((job) => {
-    if (!search) return true;
-    const q = search.toLowerCase();
-    return (
-      job.title.toLowerCase().includes(q) ||
-      job.description.toLowerCase().includes(q) ||
-      job.location.toLowerCase().includes(q)
-    );
+    if (!search.trim()) return true;
+    const terms = normalize(search).split(/\s+/).filter(Boolean);
+    const searchable = buildSearchable(job);
+    return terms.every((term) => searchable.includes(term));
   });
+
+  const noResultsMsg =
+    locale === "es"
+      ? "No encontramos ofertas para tu búsqueda. Prueba con otros términos o revisa todas las ofertas disponibles."
+      : "No jobs found for your search. Try different terms or browse all available listings.";
 
   return (
     <div>
@@ -108,11 +135,15 @@ export default function JobListings({ locale = "es" }: JobListingsProps) {
       ) : filtered.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-2xl mb-2">📭</p>
-          <p className="text-gray-400">
-            {locale === "es"
-              ? "No se encontraron ofertas laborales."
-              : "No job listings found."}
-          </p>
+          <p className="text-gray-400 max-w-md mx-auto">{noResultsMsg}</p>
+          {search && (
+            <button
+              onClick={() => setSearch("")}
+              className="mt-4 px-4 py-2 text-sm text-blue-400 hover:text-blue-300 underline"
+            >
+              {locale === "es" ? "Ver todas las ofertas" : "View all jobs"}
+            </button>
+          )}
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
@@ -121,7 +152,7 @@ export default function JobListings({ locale = "es" }: JobListingsProps) {
               key={job.id}
               id={job.id}
               title={job.title}
-              company_name={job.employer_name}
+              company_name={job.company_display || job.employer_name}
               description={job.description}
               location={job.location}
               salary_range={job.salary_range}
