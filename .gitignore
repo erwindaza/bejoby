@@ -35,6 +35,19 @@ yarn-error.log*
 .env.local
 .envrc
 
+# confidential / internal data — NEVER commit
+scripts/
+seeds/
+data/
+*.seed.json
+*-pipeline.json
+*-data-access.json
+linkedin-posts*.json
+server26-*.json
+*.secret
+*.credentials.json
+service-account*.json
+
 # vercel
 .vercel
 
