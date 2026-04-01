@@ -36,6 +36,32 @@ const workModeLabels: Record<string, Record<string, string>> = {
   en: { remote: "Remote", hybrid: "Hybrid", "on-site": "On-site" },
 };
 
+function timeAgo(dateStr: string, locale: string): string {
+  if (!dateStr) return "";
+  const now = Date.now();
+  const created = new Date(dateStr).getTime();
+  if (isNaN(created)) return "";
+  const diffMs = now - created;
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+  const diffWeeks = Math.floor(diffDays / 7);
+  const diffMonths = Math.floor(diffDays / 30);
+
+  if (locale === "es") {
+    if (diffMins < 60) return "Hace un momento";
+    if (diffHours < 24) return diffHours === 1 ? "Hace 1 hora" : `Hace ${diffHours} horas`;
+    if (diffDays < 7) return diffDays === 1 ? "Hace 1 día" : `Hace ${diffDays} días`;
+    if (diffWeeks < 5) return diffWeeks === 1 ? "Hace 1 semana" : `Hace ${diffWeeks} semanas`;
+    return diffMonths === 1 ? "Hace 1 mes" : `Hace ${diffMonths} meses`;
+  }
+  if (diffMins < 60) return "Just now";
+  if (diffHours < 24) return diffHours === 1 ? "1 hour ago" : `${diffHours} hours ago`;
+  if (diffDays < 7) return diffDays === 1 ? "1 day ago" : `${diffDays} days ago`;
+  if (diffWeeks < 5) return diffWeeks === 1 ? "1 week ago" : `${diffWeeks} weeks ago`;
+  return diffMonths === 1 ? "1 month ago" : `${diffMonths} months ago`;
+}
+
 export default function JobCard({
   id,
   title,
@@ -50,13 +76,7 @@ export default function JobCard({
 }: JobCardProps) {
   const typeLabel = typeLabels[locale]?.[employment_type] || employment_type;
   const modeLabel = work_mode ? (workModeLabels[locale]?.[work_mode] || work_mode) : null;
-  const date = created_at
-    ? new Date(created_at).toLocaleDateString(locale === "es" ? "es-CL" : "en-US", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      })
-    : "";
+  const ago = timeAgo(created_at, locale);
 
   return (
     <div className="p-6 bg-gray-800/50 border border-gray-700 rounded-xl hover:border-blue-500/50 transition-all group">
@@ -90,8 +110,8 @@ export default function JobCard({
         {salary_range && (
           <span className="flex items-center gap-1">💰 {salary_range}</span>
         )}
-        {date && (
-          <span className="flex items-center gap-1">📅 {date}</span>
+        {ago && (
+          <span className="flex items-center gap-1">� {ago}</span>
         )}
       </div>
 

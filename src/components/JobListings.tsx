@@ -35,6 +35,7 @@ export default function JobListings({ locale = "es" }: JobListingsProps) {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
   const [modeFilter, setModeFilter] = useState("");
+  const [dateFilter, setDateFilter] = useState("");
 
   const fetchJobs = useCallback(async () => {
     setLoading(true);
@@ -79,6 +80,18 @@ export default function JobListings({ locale = "es" }: JobListingsProps) {
   };
 
   const filtered = jobs.filter((job) => {
+    // Date filter
+    if (dateFilter) {
+      const created = typeof job.created_at === "object" && "_seconds" in job.created_at
+        ? (job.created_at as unknown as { _seconds: number })._seconds * 1000
+        : new Date(job.created_at).getTime();
+      const now = Date.now();
+      const diffDays = (now - created) / 86400000;
+      if (dateFilter === "1" && diffDays > 1) return false;
+      if (dateFilter === "7" && diffDays > 7) return false;
+      if (dateFilter === "30" && diffDays > 30) return false;
+    }
+    // Text search
     if (!search.trim()) return true;
     const terms = normalize(search).split(/\s+/).filter(Boolean);
     const searchable = buildSearchable(job);
@@ -121,6 +134,16 @@ export default function JobListings({ locale = "es" }: JobListingsProps) {
           <option value="remote">{locale === "es" ? "100% Remoto" : "Remote"}</option>
           <option value="hybrid">{locale === "es" ? "Híbrido" : "Hybrid"}</option>
           <option value="on-site">{locale === "es" ? "Presencial" : "On-site"}</option>
+        </select>
+        <select
+          value={dateFilter}
+          onChange={(e) => setDateFilter(e.target.value)}
+          className="px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white focus:border-blue-500 outline-none"
+        >
+          <option value="">{locale === "es" ? "Cualquier fecha" : "Any time"}</option>
+          <option value="1">{locale === "es" ? "Últimas 24 horas" : "Last 24 hours"}</option>
+          <option value="7">{locale === "es" ? "Última semana" : "Last week"}</option>
+          <option value="30">{locale === "es" ? "Último mes" : "Last month"}</option>
         </select>
       </div>
 
