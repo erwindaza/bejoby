@@ -107,7 +107,7 @@ export default async function TermsPage({ params }: { params: Promise<{ locale: 
 
         <h2>{isEs ? "13. Contacto" : "13. Contact"}</h2>
         <p>
-          📧 legal@bejoby.com<br />
+          📧 contacto@bejoby.com<br />
           <Link href={`/${locale}/contacto`} className="text-purple-400 hover:text-purple-300">
             {isEs ? "Formulario de contacto" : "Contact form"}
           </Link>

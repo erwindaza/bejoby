@@ -115,7 +115,7 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
             : "To exercise your rights or for privacy inquiries:"}
         </p>
         <p>
-          📧 privacy@bejoby.com<br />
+          📧 contacto@bejoby.com<br />
           {isEs ? "O a través de nuestro" : "Or through our"}{" "}
           <Link href={`/${locale}/contacto`} className="text-purple-400 hover:text-purple-300">
             {isEs ? "formulario de contacto" : "contact form"}
