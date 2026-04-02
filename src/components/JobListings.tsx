@@ -1,7 +1,7 @@
 // src/components/JobListings.tsx
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import JobCard from "./JobCard";
 
 interface Job {
@@ -36,6 +36,8 @@ export default function JobListings({ locale = "es" }: JobListingsProps) {
   const [typeFilter, setTypeFilter] = useState("");
   const [modeFilter, setModeFilter] = useState("");
   const [dateFilter, setDateFilter] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const blurTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fetchJobs = useCallback(async () => {
     setLoading(true);
@@ -63,6 +65,20 @@ export default function JobListings({ locale = "es" }: JobListingsProps) {
   /** Normalize text: lowercase + strip diacritics */
   const normalize = (str: string) =>
     str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+  /** Autocomplete suggestions from job titles */
+  const suggestions = useMemo(() => {
+    const q = normalize(search.trim());
+    if (!q || q.length < 2) return [];
+    return jobs
+      .filter((job) => normalize(job.title).includes(q) || normalize(job.subtitle || "").includes(q))
+      .slice(0, 5)
+      .map((job) => ({
+        id: job.id,
+        title: job.title,
+        company: job.company_display || job.employer_name || "",
+      }));
+  }, [search, jobs]);
 
   /** Build a single searchable string for a job */
   const buildSearchable = (job: Job): string => {
@@ -107,13 +123,32 @@ export default function JobListings({ locale = "es" }: JobListingsProps) {
     <div>
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3 mb-8">
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder={locale === "es" ? "🔍 Buscar ofertas..." : "🔍 Search jobs..."}
-          className="flex-1 px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
-        />
+        <div className="relative flex-1">
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setShowSuggestions(true); }}
+            onFocus={() => setShowSuggestions(true)}
+            onBlur={() => { blurTimeout.current = setTimeout(() => setShowSuggestions(false), 150); }}
+            placeholder={locale === "es" ? "🔍 Buscar ofertas..." : "🔍 Search jobs..."}
+            className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+          />
+          {showSuggestions && suggestions.length > 0 && (
+            <ul className="absolute z-50 left-0 right-0 top-full mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-xl overflow-hidden">
+              {suggestions.map((s) => (
+                <li
+                  key={s.id}
+                  onMouseDown={() => { if (blurTimeout.current) clearTimeout(blurTimeout.current); }}
+                  onClick={() => { setSearch(s.title); setShowSuggestions(false); }}
+                  className="px-4 py-2.5 cursor-pointer hover:bg-gray-700 transition-colors border-b border-gray-700/50 last:border-b-0"
+                >
+                  <span className="text-white text-sm">{s.title}</span>
+                  {s.company && <span className="text-gray-500 text-xs ml-2">— {s.company}</span>}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
         <select
           value={typeFilter}
           onChange={(e) => setTypeFilter(e.target.value)}

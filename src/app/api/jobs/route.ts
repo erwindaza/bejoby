@@ -13,6 +13,7 @@ export async function GET(req: Request) {
     const language = searchParams.get("language");
     const employer_id = searchParams.get("employer_id");
     const work_mode = searchParams.get("work_mode");
+    const employment_type = searchParams.get("employment_type");
 
     // Build query — avoid composite index requirements by filtering in JS
     // Only use Firestore where() for single-field filters that don't need orderBy
@@ -28,6 +29,7 @@ export async function GET(req: Request) {
     if (status) data = data.filter((d) => d.status === status);
     if (language) data = data.filter((d) => d.language === language);
     if (work_mode) data = data.filter((d) => d.work_mode === work_mode);
+    if (employment_type) data = data.filter((d) => d.employment_type === employment_type);
 
     // Sort by created_at desc (newest first)
     data.sort((a, b) => {
