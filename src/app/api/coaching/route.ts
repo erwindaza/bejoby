@@ -1,61 +1,42 @@
-// src/app/api/coaching/route.ts
+// src/app/api/coaching/route.ts — Coaching session initializer with Gemini welcome
 import { NextResponse } from "next/server";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => null);
-    if (!body || !body.name || !body.email) {
+    if (!body?.name || !body?.email) {
       return NextResponse.json(
         { message: "Faltan parámetros: name y email son obligatorios." },
         { status: 400 }
       );
     }
 
-    const { name, email } = body;
-    console.log("📥 [API /coaching] Datos recibidos:", { name, email });
+    const { name } = body;
 
-    // 🔑 Clave de Gemini desde variables de entorno
-    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-    if (!GEMINI_API_KEY) {
-      console.error("❌ No existe GEMINI_API_KEY en el entorno");
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
       return NextResponse.json(
-        { message: "Error de configuración: falta GEMINI_API_KEY." },
+        { message: "Error de configuración del servidor." },
         { status: 500 }
       );
     }
 
-    // 🌐 Llamada al endpoint de Gemini (puedes reemplazar el mock)
-    const res = await fetch("https://api.gemini.com/v1/coach", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${GEMINI_API_KEY}`,
-      },
-      body: JSON.stringify({
-        user: name,
-        email,
-        model: "gemini-1.5-flash",
-        prompt: "Bienvenido a BeJoby Coach Virtual, tu asistente laboral.",
-      }),
-    });
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-    if (!res.ok) {
-      const text = await res.text();
-      console.error("❌ [API /coaching] Gemini error:", res.status, text);
-      return NextResponse.json(
-        { message: "Error conectando con el Coach Virtual." },
-        { status: 502 }
-      );
-    }
+    const result = await model.generateContent(
+      `Eres el Coach Virtual de BeJoby, experto en empleabilidad para Latinoamérica.
+Genera un breve mensaje de bienvenida (3-4 líneas) para ${name} que acaba de iniciar una sesión de coaching.
+Sé motivador, profesional y cercano. Pregúntale en qué puedes ayudarle hoy.
+Responde solo el mensaje, sin encabezados ni formato markdown.`
+    );
 
-    const data = await res.json();
-    console.log("✅ [API /coaching] Respuesta Gemini:", data);
+    const reply = result.response.text().trim();
 
-    return NextResponse.json({
-      message: data.reply || `Sesión iniciada para ${name} (${email}) 🚀`,
-    });
+    return NextResponse.json({ message: reply });
   } catch (err) {
-    console.error("❌ [API /coaching] Error interno:", err);
+    console.error("[POST /api/coaching]", err);
     return NextResponse.json(
       { message: "Error en el backend de coaching." },
       { status: 500 }
@@ -63,7 +44,6 @@ export async function POST(req: Request) {
   }
 }
 
-// ✅ Test rápido con GET
 export async function GET() {
-  return NextResponse.json({ message: "Pong! /api/coaching funcionando 🚀" });
+  return NextResponse.json({ message: "Coaching API operational" });
 }

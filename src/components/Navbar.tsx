@@ -20,6 +20,7 @@ const labels = {
     postJob: "Publicar Oferta",
     login: "Iniciar Sesión",
     myJobs: "Mis ofertas",
+    dashboard: "Panel",
     logoutLabel: "Cerrar sesión",
   },
   en: {
@@ -27,6 +28,7 @@ const labels = {
     postJob: "Post a Job",
     login: "Sign In",
     myJobs: "My jobs",
+    dashboard: "Dashboard",
     logoutLabel: "Sign out",
   },
 };
@@ -127,13 +129,22 @@ export default function Navbar() {
                     {t.postJob}
                   </Link>
                   {user.employer_id && (
-                    <Link
-                      href={`/${locale}/jobs?employer=${user.employer_id}`}
-                      className="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white transition"
-                      onClick={() => setUserMenuOpen(false)}
-                    >
-                      {t.myJobs}
-                    </Link>
+                    <>
+                      <Link
+                        href={`/${locale}/employer/dashboard`}
+                        className="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white transition"
+                        onClick={() => setUserMenuOpen(false)}
+                      >
+                        {t.dashboard}
+                      </Link>
+                      <Link
+                        href={`/${locale}/jobs?employer=${user.employer_id}`}
+                        className="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white transition"
+                        onClick={() => setUserMenuOpen(false)}
+                      >
+                        {t.myJobs}
+                      </Link>
+                    </>
                   )}
                   <button
                     onClick={handleLogout}
@@ -195,6 +206,15 @@ export default function Navbar() {
               <div className="text-xs text-slate-500 pt-2 border-t border-slate-700">
                 {user.email}
               </div>
+              {user.employer_id && (
+                <Link
+                  href={`/${locale}/employer/dashboard`}
+                  className="block text-slate-300 hover:text-white py-2"
+                  onClick={() => setOpen(false)}
+                >
+                  {t.dashboard}
+                </Link>
+              )}
               <button
                 onClick={handleLogout}
                 className="block w-full text-left text-red-400 hover:text-red-300 py-2"
