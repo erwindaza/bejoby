@@ -65,7 +65,7 @@ async function analyzeWithGemini(
   if (!apiKey) throw new Error("GEMINI_API_KEY not configured");
 
   const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
   const prompt = `Eres un experto reclutador senior con 20 años de experiencia en selección de personal.
 
