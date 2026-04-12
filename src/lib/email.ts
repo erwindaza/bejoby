@@ -1,12 +1,12 @@
 // src/lib/email.ts — Email notification utility
 import nodemailer from "nodemailer";
 
-const NOTIFY_EMAIL = process.env.NOTIFY_EMAIL || "";
-const SMTP_HOST = process.env.SMTP_HOST || "smtp.zoho.com";
-const SMTP_PORT = parseInt(process.env.SMTP_PORT || "465", 10);
-const SMTP_USER = process.env.SMTP_USER || "";
-const SMTP_PASS = process.env.SMTP_PASS || "";
-const SMTP_FROM = process.env.SMTP_FROM || SMTP_USER;
+const NOTIFY_EMAIL = (process.env.NOTIFY_EMAIL || "").trim();
+const SMTP_HOST = (process.env.SMTP_HOST || "smtp.zoho.com").trim();
+const SMTP_PORT = parseInt((process.env.SMTP_PORT || "465").trim(), 10);
+const SMTP_USER = (process.env.SMTP_USER || "").trim();
+const SMTP_PASS = (process.env.SMTP_PASS || "").trim();
+const SMTP_FROM = (process.env.SMTP_FROM || SMTP_USER).trim();
 
 function isConfigured(): boolean {
   return !!(NOTIFY_EMAIL && SMTP_USER && SMTP_PASS);

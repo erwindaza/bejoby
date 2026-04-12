@@ -1,5 +1,6 @@
-# Production Health Check - Runs after Vercel deploys from main
-# Verifies production is healthy after deploy
+# Production Health Check - Runs after merge to main triggers Vercel deploy
+# Only code that passed QA should reach main
+# Flow: dev -> qa (QA checks pass) -> main (Vercel deploys) -> health check
 name: Production Health Check
 
 on:

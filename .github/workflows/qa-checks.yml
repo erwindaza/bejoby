@@ -1,10 +1,13 @@
-# QA Checks - Runs after Vercel preview deploy on PRs to main
-# Validates the live preview URL with automated checks
+# QA Checks - Runs on PRs from dev->qa and on push to qa
+# MUST PASS before code can be promoted to main (production)
+# Flow: dev -> PR to qa (CI + QA agent) -> PR to main (blocked until QA green)
 name: QA Checks
 
 on:
   pull_request:
-    branches: [main]
+    branches: [qa]
+  push:
+    branches: [qa]
 
 concurrency:
   group: qa-${{ github.ref }}
@@ -31,9 +34,9 @@ jobs:
           GCP_SERVICE_ACCOUNT_KEY: "eyJjbGllbnRfZW1haWwiOiJidWlsZEBidWlsZC5pYW0uZ3NlcnZpY2VhY2NvdW50LmNvbSIsInByaXZhdGVfa2V5IjoiZmFrZSJ9"
           GEMINI_API_KEY: "build-check"
 
-  # Gate 2: Post-deploy QA agent against production URL
+  # Gate 2: QA agent tests against live preview/production
   qa-agent:
-    name: QA Agent (Post-Deploy Checks)
+    name: QA Agent (Automated Verification)
     runs-on: ubuntu-latest
     needs: validate
     timeout-minutes: 5
@@ -48,10 +51,10 @@ jobs:
       - name: Install Python dependencies
         run: pip install requests
 
-      - name: Run QA Agent
+      - name: Run QA Agent (full suite)
         run: python scripts/qa-agent.py
         env:
-          QA_TARGET_URL: ${{ secrets.QA_TARGET_URL || 'https://www.bejoby.com' }}
+          QA_TARGET_URL: "https://www.bejoby.com"
 
       - name: Upload QA Report
         if: always()

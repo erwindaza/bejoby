@@ -1,5 +1,5 @@
-# CI - Runs on every push to any branch
-# Validates: lint, type-check, build
+# CI - Runs on every push to dev/qa/main and PRs to qa/main
+# Gate: lint, type-check, build must pass before any merge
 name: CI
 
 on:
