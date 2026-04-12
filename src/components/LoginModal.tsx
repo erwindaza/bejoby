@@ -88,6 +88,10 @@ export default function LoginModal() {
       const data = await res.json();
       if (data.ok) {
         setStep("code");
+      } else if (res.status === 429) {
+        setError(lang === "es" ? "Demasiados intentos. Espera un momento." : "Too many attempts. Wait a moment.");
+      } else if (res.status >= 500) {
+        setError(lang === "es" ? "Algo salió mal. Intenta de nuevo en unos minutos." : "Something went wrong. Try again in a few minutes.");
       } else {
         setError(data.error || "Error");
       }
@@ -147,6 +151,10 @@ export default function LoginModal() {
       if (data.ok) {
         await refresh();
         closeLogin();
+      } else if (res.status >= 500) {
+        setError(lang === "es" ? "Algo salió mal. Intenta de nuevo." : "Something went wrong. Try again.");
+        setCode(["", "", "", "", "", ""]);
+        setTimeout(() => inputRefs.current[0]?.focus(), 100);
       } else {
         setError(data.error || "Código inválido");
         setCode(["", "", "", "", "", ""]);

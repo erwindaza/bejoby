@@ -8,6 +8,9 @@ export async function GET() {
     GCP_SERVICE_ACCOUNT_KEY: !!process.env.GCP_SERVICE_ACCOUNT_KEY,
     FIRESTORE_PREFIX: process.env.FIRESTORE_PREFIX ?? "(not set)",
     GEMINI_API_KEY: !!process.env.GEMINI_API_KEY,
+    SMTP_USER: !!process.env.SMTP_USER,
+    SMTP_PASS: !!process.env.SMTP_PASS,
+    SMTP_HOST: process.env.SMTP_HOST || "smtp.zoho.com",
     NODE_ENV: process.env.NODE_ENV,
   };
 
@@ -38,11 +41,16 @@ export async function GET() {
     }
   }
 
+  // Check SMTP configuration
+  const { isSmtpConfigured } = await import("@/lib/email");
+  const smtpConfigured = isSmtpConfigured();
+
   return NextResponse.json({
     status: "ok",
     env,
     serviceAccountKeyValid: keyValid,
     firestore: { status: dbStatus, ...(dbError && { code: dbError }) },
+    email: { configured: smtpConfigured },
     timestamp: new Date().toISOString(),
   });
 }

@@ -1,0 +1,40 @@
+# Production Health Check - Runs after Vercel deploys from main
+# Verifies production is healthy after deploy
+name: Production Health Check
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  post-deploy-check:
+    name: Verify Production Health
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # Wait for Vercel to finish deploying (typically 60-120s)
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Wait for Vercel deploy
+        run: sleep 90
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python dependencies
+        run: pip install requests
+
+      - name: Run Production Health Check
+        run: python scripts/qa-agent.py --production
+        env:
+          QA_TARGET_URL: "https://www.bejoby.com"
+
+      - name: Upload Health Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-health-report
+          path: qa-report.json
+          retention-days: 90

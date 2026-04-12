@@ -1,0 +1,46 @@
+# CI - Runs on every push to any branch
+# Validates: lint, type-check, build
+name: CI
+
+on:
+  push:
+    branches: [dev, qa, main]
+  pull_request:
+    branches: [qa, main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Lint, Type-check & Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type-check
+        run: npx tsc --noEmit
+
+      - name: Build
+        run: npm run build
+        env:
+          # Minimal env vars so build doesn't crash on missing secrets
+          GCP_PROJECT_ID: "build-check"
+          GCP_SERVICE_ACCOUNT_KEY: "eyJjbGllbnRfZW1haWwiOiJidWlsZEBidWlsZC5pYW0uZ3NlcnZpY2VhY2NvdW50LmNvbSIsInByaXZhdGVfa2V5IjoiZmFrZSJ9"
+          GEMINI_API_KEY: "build-check"

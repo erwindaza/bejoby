@@ -2,6 +2,8 @@
 
 # dependencies
 /node_modules
+.venv/
+qa-report.json
 /.pnp
 .pnp.*
 .yarn/*
@@ -35,8 +37,9 @@ yarn-error.log*
 .env.local
 .envrc
 
-# confidential / internal data — NEVER commit
+# confidential / internal data - NEVER commit
 scripts/
+!scripts/qa-agent.py
 seeds/
 data/
 *.seed.json

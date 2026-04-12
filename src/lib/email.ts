@@ -43,8 +43,16 @@ async function send(subject: string, html: string): Promise<void> {
   }
 }
 
+/** Custom error class for email failures so callers can distinguish SMTP issues */
+export class EmailSendError extends Error {
+  constructor(message: string, public readonly cause?: unknown) {
+    super(message);
+    this.name = "EmailSendError";
+  }
+}
+
 /**
- * Send OTP verification code. Throws on failure (caller should handle).
+ * Send OTP verification code. Throws EmailSendError on failure.
  * If SMTP not configured, logs the code to console for dev testing.
  */
 export async function sendOTP(email: string, code: string): Promise<void> {
@@ -72,8 +80,13 @@ export async function sendOTP(email: string, code: string): Promise<void> {
     console.log(`[email] OTP sent to ${email}`);
   } catch (err) {
     console.error("[email] Failed to send OTP:", err instanceof Error ? err.message : err);
-    throw new Error("Failed to send verification code");
+    throw new EmailSendError("Failed to send verification code", err);
   }
+}
+
+/** Check if the SMTP service is configured (does not test connectivity) */
+export function isSmtpConfigured(): boolean {
+  return isConfigured();
 }
 
 // ─── Specific notification helpers ───────────────────────────────────────

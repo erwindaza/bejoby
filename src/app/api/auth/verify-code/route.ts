@@ -89,6 +89,6 @@ export async function POST(req: Request) {
     return success({ user_id: userId, email, employer_id: employerId || null });
   } catch (err) {
     console.error("[POST /api/auth/verify-code]", err);
-    return serverError();
+    return serverError("Algo salió mal al verificar. Intenta de nuevo.");
   }
 }
