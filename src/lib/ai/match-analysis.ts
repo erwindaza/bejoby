@@ -1,13 +1,17 @@
 // src/lib/ai/match-analysis.ts — AI-powered candidate-job fit analysis using Gemini
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { Storage } from "@google-cloud/storage";
 import { parseServiceAccountKey } from "@/lib/gcp/firestore";
-import { applications, jobs, aiAuditLog } from "@/lib/gcp/collections";
+import { applications, jobs } from "@/lib/gcp/collections";
 import { anonymizeForLLM } from "@/lib/ai/anonymize";
 import { FieldValue } from "@google-cloud/firestore";
 import mammoth from "mammoth";
+import { enforceGovernancePolicy, assertModelApproved } from "@/lib/ai/governance";
+import { getGenerativeModel } from "@/lib/ai/ai-client";
+import { logAICost, checkAIBudget } from "@/lib/services/ai-cost-service";
+import { trackCVAnalyzed } from "@/lib/services/game-events-service";
 
 const CV_BUCKET = process.env.GCS_CV_BUCKET || "bejoby-cvs";
+const MONTHLY_AI_BUDGET_USD = parseFloat(process.env.MONTHLY_AI_BUDGET_USD || "100");
 
 export interface MatchAnalysis {
   score: number; // 0-100
@@ -55,17 +59,13 @@ async function extractCVText(cvPath: string): Promise<string> {
 /**
  * Run Gemini analysis comparing CV text against job description.
  */
-async function analyzeWithGemini(
+export async function analyzeWithAI(
   cvText: string,
   jobTitle: string,
   jobDescription: string,
   candidateMessage: string,
 ): Promise<MatchAnalysis> {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) throw new Error("GEMINI_API_KEY not configured");
-
-  const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+  const model = getGenerativeModel("MATCH_ANALYSIS");
 
   const prompt = `Eres un experto reclutador senior con 20 años de experiencia en selección de personal.
 
@@ -154,9 +154,26 @@ export async function analyzeApplication(applicationId: string): Promise<MatchAn
       return null;
     }
 
-    // Run Gemini analysis
-    console.log(`[AI] Running Gemini analysis for ${appData.candidate_name}...`);
-    const analysis = await analyzeWithGemini(
+    // Assert model is approved under CAIO governance before running
+    assertModelApproved("MATCH_ANALYSIS");
+
+    // Check AI budget before running expensive analysis
+    try {
+      await checkAIBudget(MONTHLY_AI_BUDGET_USD);
+    } catch (budgetErr) {
+      console.warn(`[AI-BUDGET] Budget limit reached, deferring analysis:`, budgetErr instanceof Error ? budgetErr.message : budgetErr);
+      // Mark application to retry later (don't fail permanently)
+      await applications().doc(applicationId).update({
+        batch_processing_status: "retry",
+        batch_processing_last_error: "Monthly AI budget limit reached, will retry next month",
+        updated_at: FieldValue.serverTimestamp(),
+      });
+      return null;
+    }
+
+    // Run AI analysis
+    console.log(`[AI] Running candidate analysis for ${appData.candidate_name}...`);
+    const analysis = await analyzeWithAI(
       cvText,
       jobData.title,
       jobData.description,
@@ -168,30 +185,66 @@ export async function analyzeApplication(applicationId: string): Promise<MatchAn
       ai_analysis: analysis,
     });
 
-    // Audit log: immutable record of AI decision (Ley 21.719 compliance)
-    await aiAuditLog().add({
-      type: "match_analysis",
-      application_id: applicationId,
-      job_id: appData.job_id,
-      model: "gemini-1.5-flash",
-      model_version: "1.5",
+    // Track game event for CV analysis
+    await trackCVAnalyzed(applicationId, appData.candidate_id, analysis.score);
+
+    // Log AI cost (estimated: prompt + prompt length)
+    const estimatedPromptChars = cvText.length
+      + String(jobData.title || "").length
+      + String(jobData.description || "").length
+      + String(appData.message || "").length
+      + 1200;
+    const estimatedInputTokens = Math.ceil(estimatedPromptChars / 4);
+    const estimatedOutputTokens = Math.ceil(
+      (analysis.summary.length + analysis.strengths.join("").length) / 4 + 100
+    );
+    await logAICost(
+      applicationId,
+      "gemini-2.5-flash-lite",
+      "google",
+      "match_analysis",
+      {
+        input_tokens: estimatedInputTokens,
+        output_tokens: estimatedOutputTokens,
+        total_tokens: estimatedInputTokens + estimatedOutputTokens,
+      }
+    );
+
+    // CAIO Governance: audit log + policy enforcement (Ley 21.719 / OECD AI Guidelines)
+    const governance = await enforceGovernancePolicy({
+      model_key: "MATCH_ANALYSIS",
+      subject_id: applicationId,
+      decision_type: "match_analysis",
       input_summary: {
         cv_length: cvText.length,
         job_title: jobData.title,
         had_message: !!appData.message,
         pii_anonymized: true,
       },
-      output: {
+      output_summary: {
         score: analysis.score,
         strengths_count: analysis.strengths.length,
         gaps_count: analysis.gaps.length,
         recommendation: analysis.recommendation,
       },
-      human_reviewed: false,
-      created_at: FieldValue.serverTimestamp(),
+      score: analysis.score,
+      triggered_by: "system",
     });
 
-    console.log(`[AI] Analysis complete for ${appData.candidate_name}: score=${analysis.score}/100`);
+    if (governance.requires_human_review) {
+      console.warn(
+        `[CAIO] Human review required for application ${applicationId}: ${governance.review_reason}`,
+      );
+      // Flag the application for review in Firestore
+      await applications().doc(applicationId).update({
+        ai_requires_human_review: true,
+        ai_review_reason: governance.review_reason || null,
+        ai_governance_audit_id: governance.audit_id || null,
+        updated_at: FieldValue.serverTimestamp(),
+      });
+    }
+
+    console.log(`[AI] Analysis complete for ${appData.candidate_name}: score=${analysis.score}/100 | flags=${governance.policy_flags.join(",")}`);
     return analysis;
   } catch (err) {
     console.error("[AI] Analysis failed:", err instanceof Error ? err.message : err);

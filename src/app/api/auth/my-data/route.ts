@@ -1,9 +1,10 @@
 // src/app/api/auth/my-data/route.ts — ARCO-P data rights (Ley 21.719 Chile)
 // Provides: Access (download), Portability (JSON export), Cancellation (delete)
 import { getSessionUser } from "@/lib/auth";
-import { users, applications, candidates, sessions, dataRequests } from "@/lib/gcp/collections";
+import { users, applications, candidates, sessions } from "@/lib/gcp/collections";
 import { success, error, serverError } from "@/lib/utils/api-response";
-import { FieldValue } from "@google-cloud/firestore";
+import { createPrivacyRequest } from "@/lib/compliance/privacy-requests";
+import { logAuditEvent } from "@/lib/compliance/audit";
 
 // GET /api/auth/my-data — Access & Portability: export all user data as JSON
 export async function GET() {
@@ -62,6 +63,18 @@ export async function GET() {
       ],
     };
 
+    await logAuditEvent({
+      type: "DATA_EXPORT",
+      actor_id: user.id,
+      actor_email: user.email,
+      subject_id: user.id,
+      subject_type: "user",
+      purpose: "data_subject_access_portability",
+      metadata: {
+        included_sections: Object.keys(userData),
+      },
+    });
+
     return success(userData);
   } catch (err) {
     console.error("[GET /api/auth/my-data]", err);
@@ -75,15 +88,14 @@ export async function DELETE() {
     const user = await getSessionUser();
     if (!user) return error("Debes iniciar sesión", 401);
 
-    // Log the deletion request (don't delete immediately — allow 30 day grace period)
-    await dataRequests().add({
+    // Log the suppression request without immediate irreversible deletion.
+    const privacyRequest = await createPrivacyRequest({
       user_id: user.id,
       email: user.email,
-      type: "deletion",
-      status: "pending",
-      requested_at: FieldValue.serverTimestamp(),
-      scheduled_deletion_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-      notes: "Solicitud de eliminación bajo Ley 21.719. Datos serán eliminados en 30 días salvo objeción.",
+      request_type: "SUPPRESSION",
+      target: "account",
+      description: "Solicitud de eliminación de cuenta y datos elegibles bajo Ley 21.719.",
+      requested_blocking: true,
     });
 
     // Invalidate all sessions immediately
@@ -93,6 +105,8 @@ export async function DELETE() {
     await batch.commit();
 
     return success({
+      request_id: privacyRequest.request_id,
+      status: privacyRequest.status,
       message: "Solicitud de eliminación recibida. Tus datos serán eliminados en 30 días. Si deseas cancelar esta solicitud, contacta a contacto@bejoby.com.",
       scheduled_deletion: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
     });

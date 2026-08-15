@@ -1,8 +1,12 @@
 // src/app/api/coaching/route.ts — Coaching session initializer with Gemini welcome
-import { NextResponse } from "next/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { NextRequest, NextResponse } from "next/server";
+import { getGenerativeModel } from "@/lib/ai/ai-client";
+import { guardOrigin } from "@/lib/security/origin-guard";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  const blocked = await guardOrigin(req, "/api/coaching");
+  if (blocked) return blocked;
+
   try {
     const body = await req.json().catch(() => null);
     if (!body?.name || !body?.email) {
@@ -13,17 +17,7 @@ export async function POST(req: Request) {
     }
 
     const { name } = body;
-
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      return NextResponse.json(
-        { message: "Error de configuración del servidor." },
-        { status: 500 }
-      );
-    }
-
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const model = getGenerativeModel("COACH");
 
     const result = await model.generateContent(
       `Eres el Coach Virtual de BeJoby, experto en empleabilidad para Latinoamérica.

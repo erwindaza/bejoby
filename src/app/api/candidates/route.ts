@@ -3,6 +3,8 @@ import { candidates } from "@/lib/gcp/collections";
 import { createCandidateSchema } from "@/lib/validators/candidate";
 import { success, created, error, serverError } from "@/lib/utils/api-response";
 import { FieldValue } from "@google-cloud/firestore";
+import { recordConsent } from "@/lib/compliance/consent";
+import { logAuditEvent } from "@/lib/compliance/audit";
 
 // GET /api/candidates — List candidates
 export async function GET() {
@@ -39,6 +41,31 @@ export async function POST(req: Request) {
       created_at: FieldValue.serverTimestamp(),
       updated_at: FieldValue.serverTimestamp(),
     });
+
+    await Promise.all([
+      recordConsent({
+        candidate_id: docRef.id,
+        email: parsed.data.email,
+        purpose: "PRIVACY_NOTICE_ACCEPTANCE",
+        policy_version: "1.0.0",
+        source: "candidate_registration",
+      }),
+      recordConsent({
+        candidate_id: docRef.id,
+        email: parsed.data.email,
+        purpose: "CANDIDATE_DATA_PROCESSING",
+        policy_version: "1.0.0",
+        source: "candidate_registration",
+      }),
+      logAuditEvent({
+        type: "PROFILE_UPDATE",
+        actor_id: docRef.id,
+        actor_email: parsed.data.email,
+        subject_id: docRef.id,
+        subject_type: "candidate",
+        purpose: "candidate_registration",
+      }),
+    ]);
 
     return created({ id: docRef.id, ...parsed.data });
   } catch (err) {

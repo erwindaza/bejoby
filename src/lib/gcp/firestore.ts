@@ -78,3 +78,7 @@ export function getFirestore(): Firestore {
 
   return firestoreInstance;
 }
+
+export function db(): Firestore {
+  return getFirestore();
+}

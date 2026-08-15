@@ -21,6 +21,7 @@ function collection(name: string): CollectionReference {
 // Named collection accessors
 export const employers = () => collection("employers");
 export const jobs = () => collection("jobs");
+export const partners = () => collection("partners");
 export const candidates = () => collection("candidates");
 export const applications = () => collection("applications");
 export const contactForms = () => collection("contact_forms");
@@ -30,3 +31,9 @@ export const sessions = () => collection("sessions");
 export const otps = () => collection("otps");
 export const aiAuditLog = () => collection("ai_audit_log");
 export const dataRequests = () => collection("data_requests");
+export const emailSequences = () => collection("email_sequences");
+export const consentRecords = () => collection("consent_records");
+export const privacyRequests = () => collection("privacy_requests");
+export const auditEvents = () => collection("audit_events");
+export const vendorRegistry = () => collection("vendor_registry");
+export const aiModelRegistry = () => collection("ai_model_registry");

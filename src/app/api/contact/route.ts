@@ -3,6 +3,7 @@ import { contactForms } from "@/lib/gcp/collections";
 import { createContactSchema } from "@/lib/validators/contact";
 import { created, error, serverError } from "@/lib/utils/api-response";
 import { FieldValue } from "@google-cloud/firestore";
+import { notifyB2BContact } from "@/lib/email";
 
 // POST /api/contact — Submit contact form
 export async function POST(req: Request) {
@@ -21,6 +22,15 @@ export async function POST(req: Request) {
     });
 
     console.log(`[contact] New ${parsed.data.source} form from ${parsed.data.email}`);
+
+    // Fire B2B alert for employer landing page submissions
+    if (parsed.data.source === "b2b-landing") {
+      notifyB2BContact({
+        email: parsed.data.email,
+        name: parsed.data.name || "Unknown",
+        message: parsed.data.message || "",
+      }).catch((e: unknown) => console.error("[contact] B2B notification failed:", e));
+    }
 
     return created({ id: docRef.id, message: "Message received" });
   } catch (err) {
