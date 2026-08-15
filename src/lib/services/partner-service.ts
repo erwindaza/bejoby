@@ -1,6 +1,7 @@
 import { applications, candidates, partners } from "@/lib/gcp/collections";
 import { FieldValue } from "@google-cloud/firestore";
 import { trackSubmittedToPartner } from "@/lib/services/game-events-service";
+import { decryptCandidatePII, encryptApplicationPII } from "@/lib/security/pii";
 
 export interface PartnerSubmission {
   application_id: string;
@@ -33,7 +34,7 @@ export async function submitCandidateToPartner(
     if (!candidateDoc.exists) {
       return { success: false, error: "Candidate not found" };
     }
-    const candData = candidateDoc.data() as Record<string, unknown>;
+    const candData = decryptCandidatePII(candidateDoc.data() as Record<string, unknown>) as Record<string, unknown>;
 
     // Guard: consent
     if (candData.consent_shared !== true) {
@@ -67,8 +68,12 @@ export async function submitCandidateToPartner(
       candidate_id: candidateId,
       partner_id: partnerId,
       job_id: jobId,
-      candidate_name: candData.name,
-      candidate_email: candData.email,
+      ...encryptApplicationPII({
+        candidate_name: String(candData.name || ""),
+        candidate_email: String(candData.email || ""),
+        message: "",
+        resume_url: "",
+      }),
       status: "submitted",
       commission_status: "pending",
       commission_amount_clp: commissionAmount,

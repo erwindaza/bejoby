@@ -5,12 +5,13 @@ import { success, created, error, serverError } from "@/lib/utils/api-response";
 import { FieldValue } from "@google-cloud/firestore";
 import { recordConsent } from "@/lib/compliance/consent";
 import { logAuditEvent } from "@/lib/compliance/audit";
+import { buildEncryptedCandidateRecord, hashForLookup, redactCandidateRecord } from "@/lib/security/pii";
 
 // GET /api/candidates — List candidates
 export async function GET() {
   try {
     const snapshot = await candidates().orderBy("created_at", "desc").get();
-    const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    const data = snapshot.docs.map((doc) => redactCandidateRecord(doc.id, doc.data() as Record<string, unknown>));
     return success(data);
   } catch (err) {
     console.error("[GET /api/candidates]", err);
@@ -28,16 +29,22 @@ export async function POST(req: Request) {
       return error(parsed.error.issues.map((i) => i.message).join(", "));
     }
 
-    // Check if candidate email already exists
-    const existing = await candidates().where("email", "==", parsed.data.email).limit(1).get();
+    const emailHash = hashForLookup(parsed.data.email);
+    const [existingByHash, existingLegacy] = await Promise.all([
+      candidates().where("email_hash", "==", emailHash).limit(1).get(),
+      candidates().where("email", "==", parsed.data.email.trim().toLowerCase()).limit(1).get(),
+    ]);
+    const existing = !existingByHash.empty ? existingByHash : existingLegacy;
     if (!existing.empty) {
-      const existingDoc = existing.docs[0];
-      return error("A candidate with this email already exists", 409, { id: existingDoc.id });
+      return error("A candidate with this email already exists", 409, { id: existing.docs[0].id });
     }
 
     const docRef = candidates().doc();
     await docRef.set({
-      ...parsed.data,
+      language: parsed.data.language,
+      consent_privacy: parsed.data.consent_privacy,
+      consent_data_processing: parsed.data.consent_data_processing,
+      ...buildEncryptedCandidateRecord(parsed.data),
       created_at: FieldValue.serverTimestamp(),
       updated_at: FieldValue.serverTimestamp(),
     });
@@ -67,7 +74,13 @@ export async function POST(req: Request) {
       }),
     ]);
 
-    return created({ id: docRef.id, ...parsed.data });
+    return created({
+      id: docRef.id,
+      language: parsed.data.language,
+      consent_privacy: parsed.data.consent_privacy,
+      consent_data_processing: parsed.data.consent_data_processing,
+      pii_encrypted: true,
+    });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     console.error("[POST /api/candidates]", message);

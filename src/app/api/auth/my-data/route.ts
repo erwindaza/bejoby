@@ -5,6 +5,7 @@ import { users, applications, candidates, sessions } from "@/lib/gcp/collections
 import { success, error, serverError } from "@/lib/utils/api-response";
 import { createPrivacyRequest } from "@/lib/compliance/privacy-requests";
 import { logAuditEvent } from "@/lib/compliance/audit";
+import { decryptApplicationPII, decryptCandidatePII, hashForLookup } from "@/lib/security/pii";
 
 // GET /api/auth/my-data — Access & Portability: export all user data as JSON
 export async function GET() {
@@ -23,29 +24,41 @@ export async function GET() {
     }
 
     // Find candidate record by email
-    const candidateSnap = await candidates().where("email", "==", user.email).limit(1).get();
+    const candidateHash = hashForLookup(user.email);
+    const [candidateByHash, candidateLegacy] = await Promise.all([
+      candidates().where("email_hash", "==", candidateHash).limit(1).get(),
+      candidates().where("email", "==", user.email).limit(1).get(),
+    ]);
+    const candidateSnap = !candidateByHash.empty ? candidateByHash : candidateLegacy;
     if (!candidateSnap.empty) {
       const cDoc = candidateSnap.docs[0];
-      userData.candidate_profile = { id: cDoc.id, ...cDoc.data() };
+      userData.candidate_profile = { id: cDoc.id, ...decryptCandidatePII(cDoc.data() as Record<string, unknown>) };
     }
 
     // Applications
-    const appSnap = await applications().where("candidate_email", "==", user.email).get();
-    userData.applications = appSnap.docs.map((d) => {
-      const data = d.data();
+    const [appByHash, appLegacy] = await Promise.all([
+      applications().where("candidate_email_hash", "==", candidateHash).get(),
+      applications().where("candidate_email", "==", user.email).get(),
+    ]);
+    const appDocs = !appByHash.empty ? appByHash.docs : appLegacy.docs;
+    userData.applications = appDocs.map((d) => {
+      const data = decryptApplicationPII(d.data() as Record<string, unknown>) as Record<string, unknown>;
+      const aiAnalysis = typeof data.ai_analysis === "object" && data.ai_analysis
+        ? data.ai_analysis as Record<string, unknown>
+        : null;
       return {
         id: d.id,
         job_id: data.job_id,
         status: data.status,
         message: data.message,
         cv_filename: data.cv_filename,
-        ai_analysis: data.ai_analysis ? {
-          score: data.ai_analysis.score,
-          summary: data.ai_analysis.summary,
-          strengths: data.ai_analysis.strengths,
-          gaps: data.ai_analysis.gaps,
-          recommendation: data.ai_analysis.recommendation,
-          analyzed_at: data.ai_analysis.analyzed_at,
+        ai_analysis: aiAnalysis ? {
+          score: aiAnalysis.score,
+          summary: aiAnalysis.summary,
+          strengths: aiAnalysis.strengths,
+          gaps: aiAnalysis.gaps,
+          recommendation: aiAnalysis.recommendation,
+          analyzed_at: aiAnalysis.analyzed_at,
         } : null,
         created_at: data.created_at,
       };

@@ -1,4 +1,5 @@
 import { candidates } from "@/lib/gcp/collections";
+import { decryptCandidatePII } from "@/lib/security/pii";
 
 export interface CandidateGameState {
   candidate_id: string;
@@ -75,7 +76,7 @@ function computeProfileLevel(profileCompletion: number): string {
 export async function getCandidateGameState(candidateId: string): Promise<CandidateGameState | null> {
   const doc = await candidates().doc(candidateId).get();
   if (!doc.exists) return null;
-  const data = doc.data() as Record<string, unknown>;
+  const data = decryptCandidatePII(doc.data() as Record<string, unknown>) as Record<string, unknown>;
 
   const profileCompletion = normalizeCompletionCount(data);
   const pendingTasks = buildPendingTasks(data);
