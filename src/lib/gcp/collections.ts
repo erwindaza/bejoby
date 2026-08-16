@@ -30,3 +30,5 @@ export const sessions = () => collection("sessions");
 export const otps = () => collection("otps");
 export const aiAuditLog = () => collection("ai_audit_log");
 export const dataRequests = () => collection("data_requests");
+export const emailSequences = () => collection("email_sequences");
+export const partners = () => collection("partners");

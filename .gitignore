@@ -38,10 +38,11 @@ yarn-error.log*
 .envrc
 
 # confidential / internal data - NEVER commit
-scripts/
+scripts/*
 !scripts/qa-agent.py
 seeds/
 data/
+docs/
 *.seed.json
 *-pipeline.json
 *-data-access.json

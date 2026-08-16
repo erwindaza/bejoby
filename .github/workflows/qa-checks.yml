@@ -34,7 +34,7 @@ jobs:
           GCP_SERVICE_ACCOUNT_KEY: "eyJjbGllbnRfZW1haWwiOiJidWlsZEBidWlsZC5pYW0uZ3NlcnZpY2VhY2NvdW50LmNvbSIsInByaXZhdGVfa2V5IjoiZmFrZSJ9"
           GEMINI_API_KEY: "build-check"
 
-  # Gate 2: QA agent tests against live preview/production
+  # Gate 2: QA agent tests against a non-production QA target
   qa-agent:
     name: QA Agent (Automated Verification)
     runs-on: ubuntu-latest
@@ -54,7 +54,7 @@ jobs:
       - name: Run QA Agent (full suite)
         run: python scripts/qa-agent.py
         env:
-          QA_TARGET_URL: "https://www.bejoby.com"
+          QA_TARGET_URL: ${{ vars.QA_TARGET_URL || 'https://bejoby.vercel.app' }}
 
       - name: Upload QA Report
         if: always()

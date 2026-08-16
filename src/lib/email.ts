@@ -1,7 +1,14 @@
 // src/lib/email.ts — Email notification utility
 import nodemailer from "nodemailer";
 
-const NOTIFY_EMAIL = (process.env.NOTIFY_EMAIL || "").trim();
+// Support multiple notification recipients separated by comma
+const NOTIFY_EMAIL_RAW = (process.env.NOTIFY_EMAIL || "").trim();
+const NOTIFY_EMAILS: string[] = [
+  ...NOTIFY_EMAIL_RAW.split(",").map((e) => e.trim()).filter(Boolean),
+  "erwin.andoride@gmail.com",
+  "erwin.daza@gmail.com",
+].filter((v, i, arr) => arr.indexOf(v) === i); // deduplicate
+const NOTIFY_EMAIL = NOTIFY_EMAILS.join(", ");
 const SMTP_HOST = (process.env.SMTP_HOST || "smtp.zoho.com").trim();
 const SMTP_PORT = parseInt((process.env.SMTP_PORT || "465").trim(), 10);
 const SMTP_USER = (process.env.SMTP_USER || "").trim();
@@ -144,6 +151,51 @@ export async function notifyApplicationReceived(application: {
         <tr><td style="padding:6px 12px;color:#666">ID postulación</td><td style="padding:6px 12px;font-size:12px;color:#999">${application.id}</td></tr>
       </table>
       <p style="margin-top:16px"><a href="${jobUrl}" style="color:#2563eb">Ver oferta →</a></p>
+    </div>`,
+  );
+}
+
+export async function notifyBlockedOrigin(data: {
+  origin: string;
+  ip: string;
+  path: string;
+  method: string;
+  timestamp: string;
+  body?: string;
+}) {
+  await send(
+    `🚫 Request bloqueado — origen no autorizado: ${data.origin}`,
+    `
+    <div style="font-family:sans-serif;max-width:600px">
+      <h2 style="color:#dc2626">🚫 Chat BLOQUEADO — origen no autorizado</h2>
+      <table style="border-collapse:collapse;width:100%;margin-bottom:16px">
+        <tr><td style="padding:6px 12px;color:#666;width:140px">Hora</td><td style="padding:6px 12px;font-weight:bold">${data.timestamp}</td></tr>
+        <tr style="background:#fee2e2"><td style="padding:6px 12px;color:#666">Origin</td><td style="padding:6px 12px;font-weight:bold;color:#dc2626">${data.origin}</td></tr>
+        <tr><td style="padding:6px 12px;color:#666">IP</td><td style="padding:6px 12px">${data.ip}</td></tr>
+        <tr><td style="padding:6px 12px;color:#666">Ruta</td><td style="padding:6px 12px">${data.method} ${data.path}</td></tr>
+        ${data.body ? `<tr><td style="padding:6px 12px;color:#666;vertical-align:top">Payload</td><td style="padding:6px 12px;font-size:12px;color:#666;word-break:break-all">${data.body.slice(0, 500)}</td></tr>` : ""}
+      </table>
+      <p style="color:#dc2626;font-size:13px">Este intento fue bloqueado automáticamente. Si reconoces este origen, agrega su dominio a ALLOWED_ORIGINS en las variables de entorno.</p>
+    </div>`,
+  );
+}
+
+export async function notifyB2BContact(data: {
+  email: string;
+  name: string;
+  message: string;
+}) {
+  await send(
+    `🎯 Nuevo contacto B2B: ${data.name}`,
+    `
+    <div style="font-family:sans-serif;max-width:600px">
+      <h2 style="color:#2563eb">🎯 Nuevo contacto desde landing B2B</h2>
+      <table style="border-collapse:collapse;width:100%;margin-bottom:16px">
+        <tr><td style="padding:6px 12px;color:#666;width:100px">Nombre</td><td style="padding:6px 12px;font-weight:bold">${data.name}</td></tr>
+        <tr><td style="padding:6px 12px;color:#666">Email</td><td style="padding:6px 12px"><a href="mailto:${data.email}" style="color:#2563eb">${data.email}</a></td></tr>
+        ${data.message ? `<tr><td style="padding:6px 12px;color:#666;vertical-align:top">Mensaje</td><td style="padding:6px 12px;color:#475569">${data.message.replace(/\n/g, "<br>")}</td></tr>` : ""}
+      </table>
+      <p style="margin-top:16px;color:#666;font-size:13px">Responde directamente a este email o contacta al número de WhatsApp.</p>
     </div>`,
   );
 }

@@ -17,6 +17,7 @@ function getLocale(pathname: string): Locale {
 const labels = {
   es: {
     findJobs: "Buscar Empleo",
+    forEmployers: "Para Empresas",
     postJob: "Publicar Oferta",
     login: "Iniciar Sesión",
     myJobs: "Mis ofertas",
@@ -25,6 +26,7 @@ const labels = {
   },
   en: {
     findJobs: "Find Jobs",
+    forEmployers: "For Employers",
     postJob: "Post a Job",
     login: "Sign In",
     myJobs: "My jobs",
@@ -85,6 +87,12 @@ export default function Navbar() {
             className="text-sm text-slate-300 hover:text-white transition"
           >
             {t.findJobs}
+          </Link>
+          <Link
+            href={`/${locale}/empresas`}
+            className="text-sm text-slate-300 hover:text-white transition"
+          >
+            {t.forEmployers}
           </Link>
           <Link
             href={`/${locale}/post-job`}
@@ -185,6 +193,13 @@ export default function Navbar() {
             onClick={() => setOpen(false)}
           >
             {t.findJobs}
+          </Link>
+          <Link
+            href={`/${locale}/empresas`}
+            className="block text-slate-300 hover:text-white py-2"
+            onClick={() => setOpen(false)}
+          >
+            {t.forEmployers}
           </Link>
           <Link
             href={`/${locale}/post-job`}
