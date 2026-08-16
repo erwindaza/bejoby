@@ -1,5 +1,5 @@
 // src/lib/services/email-sequence.ts — Email sequence engine for HR cold outreach
-import { FieldValue, QueryDocumentSnapshot } from "@google-cloud/firestore";
+import { FieldValue } from "@google-cloud/firestore";
 import { emailSequences } from "@/lib/gcp/collections";
 import nodemailer from "nodemailer";
 
@@ -66,9 +66,9 @@ BeJoby Team
       body: (name: string, company: string) => `
 Hola ${name},
 
-Siguiendo nuestro último email...
+Siguiendo nuestro último email para ${company}...
 
-Aquí te muestro cómo equipos como ${company} ahorran tiempo:
+Aquí te muestro cómo la mayoría de clientes nuestros ahorran tiempo:
 
 1️⃣  Publican una oferta en 2 minutos
 2️⃣  Nuestra IA analiza cada candidato (score 0-100%, fortalezas, brechas)
@@ -92,9 +92,9 @@ BeJoby Team
       body: (name: string, company: string) => `
 Hola ${name},
 
-Última propuesta de parte mía: prueba BeJoby sin riesgo.
+Última propuesta de parte mía para ${company}: prueba BeJoby sin riesgo.
 
-Te damos 30 días completos para que ${company} publique una oferta y vea cómo funciona la IA. Sin tarjeta de crédito. Sin compromiso.
+Te damos 30 días completos para publicar una oferta y ver cómo funciona la IA. Sin tarjeta de crédito. Sin compromiso.
 
 → Acceso a la plataforma
 → Análisis IA ilimitado
@@ -140,7 +140,12 @@ export async function createSequence(email: string, name: string, company: strin
   return { ...sequence, id: docRef.id };
 }
 
-export async function sendStep(sequence: EmailSequence, step: number): Promise<void> {
+export async function sendStep(
+  sequenceId: string,
+  sequence: EmailSequence,
+  step: number,
+): Promise<void> {
+  void sequenceId;
   const stepTemplate = SEQUENCES["hr-cold-outreach"][step];
   if (!stepTemplate) throw new Error(`Step ${step} not found`);
 
@@ -181,7 +186,7 @@ export async function processSequences(): Promise<{ processed: number; errors: n
   let processed = 0,
     errors = 0;
 
-  for (const doc of snap.docs as QueryDocumentSnapshot[]) {
+  for (const doc of snap.docs) {
     try {
       const seq = doc.data() as EmailSequence;
       const seqTemplate = SEQUENCES["hr-cold-outreach"];
@@ -195,7 +200,7 @@ export async function processSequences(): Promise<{ processed: number; errors: n
       }
 
       // Send the current step
-      await sendStep(seq, seq.current_step);
+      await sendStep(doc.id, seq, seq.current_step);
 
       // Calculate next step date
       const nextStep = seq.current_step + 1;

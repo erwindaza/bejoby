@@ -9,6 +9,7 @@ import { enforceGovernancePolicy, assertModelApproved } from "@/lib/ai/governanc
 import { getGenerativeModel } from "@/lib/ai/ai-client";
 import { logAICost, checkAIBudget } from "@/lib/services/ai-cost-service";
 import { trackCVAnalyzed } from "@/lib/services/game-events-service";
+import { decryptApplicationPII } from "@/lib/security/pii";
 
 const CV_BUCKET = process.env.GCS_CV_BUCKET || "bejoby-cvs";
 const MONTHLY_AI_BUDGET_USD = parseFloat(process.env.MONTHLY_AI_BUDGET_USD || "100");
@@ -131,6 +132,7 @@ export async function analyzeApplication(applicationId: string): Promise<MatchAn
       return null;
     }
     const appData = appDoc.data()!;
+    const hydratedApp = decryptApplicationPII(appData as Record<string, unknown>);
 
     if (!appData.cv_path) {
       console.log(`[AI] No CV attached to application ${applicationId}, skipping analysis`);
@@ -172,12 +174,12 @@ export async function analyzeApplication(applicationId: string): Promise<MatchAn
     }
 
     // Run AI analysis
-    console.log(`[AI] Running candidate analysis for ${appData.candidate_name}...`);
+    console.log(`[AI] Running candidate analysis for ${hydratedApp.candidate_name}...`);
     const analysis = await analyzeWithAI(
       cvText,
       jobData.title,
       jobData.description,
-      appData.message || "",
+      String(hydratedApp.message || ""),
     );
 
     // Save analysis to application document
@@ -188,10 +190,13 @@ export async function analyzeApplication(applicationId: string): Promise<MatchAn
     // Track game event for CV analysis
     await trackCVAnalyzed(applicationId, appData.candidate_id, analysis.score);
 
-    // Log AI cost (estimated from the inputs sent to the model)
-    const estimatedInputTokens = Math.ceil(
-      (cvText.length + String(jobData.title || "").length + String(jobData.description || "").length + String(appData.message || "").length) / 4 + 500
-    );
+    // Log AI cost (estimated: prompt + prompt length)
+    const estimatedPromptChars = cvText.length
+      + String(jobData.title || "").length
+      + String(jobData.description || "").length
+      + String(hydratedApp.message || "").length
+      + 1200;
+    const estimatedInputTokens = Math.ceil(estimatedPromptChars / 4);
     const estimatedOutputTokens = Math.ceil(
       (analysis.summary.length + analysis.strengths.join("").length) / 4 + 100
     );
@@ -215,7 +220,7 @@ export async function analyzeApplication(applicationId: string): Promise<MatchAn
       input_summary: {
         cv_length: cvText.length,
         job_title: jobData.title,
-        had_message: !!appData.message,
+        had_message: !!hydratedApp.message,
         pii_anonymized: true,
       },
       output_summary: {
@@ -241,7 +246,7 @@ export async function analyzeApplication(applicationId: string): Promise<MatchAn
       });
     }
 
-    console.log(`[AI] Analysis complete for ${appData.candidate_name}: score=${analysis.score}/100 | flags=${governance.policy_flags.join(",")}`);
+    console.log(`[AI] Analysis complete for ${hydratedApp.candidate_name}: score=${analysis.score}/100 | flags=${governance.policy_flags.join(",")}`);
     return analysis;
   } catch (err) {
     console.error("[AI] Analysis failed:", err instanceof Error ? err.message : err);

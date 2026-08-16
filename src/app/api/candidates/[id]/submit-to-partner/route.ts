@@ -3,7 +3,6 @@ import { submitCandidateToPartner } from "@/lib/services/partner-service";
 import { getCandidateGameState } from "@/lib/services/candidate-game-service";
 
 type Params = { params: Promise<{ id: string }> };
-
 /**
  * POST /api/candidates/:id/submit-to-partner
  * Submit a candidate to a partner for a specific job.

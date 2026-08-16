@@ -29,6 +29,10 @@ export async function GET(req: Request) {
     }
 
     const application = applicationDoc.data()!;
+    if (application.cv_path !== path) {
+      return error("No autorizado", 403);
+    }
+
     const isCandidateOwner = application.candidate_email === user.email;
     let isEmployerOwner = false;
 

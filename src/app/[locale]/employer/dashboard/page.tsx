@@ -99,7 +99,7 @@ interface Application {
   job_id: string;
   job_title: string;
   candidate_name: string;
-  candidate_email: string;
+  candidate_email_masked: string;
   message?: string;
   status: string;
   cv_path?: string;
@@ -354,7 +354,7 @@ export default function EmployerDashboard() {
                         <div className="grid gap-3 sm:grid-cols-2">
                           <div>
                             <span className="text-xs text-slate-500 uppercase">{l.email}</span>
-                            <p className="text-sm text-slate-300">{app.candidate_email}</p>
+                            <p className="text-sm text-slate-300">{app.candidate_email_masked}</p>
                           </div>
                           <div>
                             <span className="text-xs text-slate-500 uppercase">{l.cv}</span>

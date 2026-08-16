@@ -8,10 +8,15 @@
 
 import { getFirestore } from "@/lib/gcp/firestore";
 import { FieldValue } from "@google-cloud/firestore";
+import { buildEncryptedCandidateRecord, encryptApplicationPII } from "@/lib/security/pii";
+
+function collectionName(name: string): string {
+  return `${process.env.FIRESTORE_PREFIX || ""}${name}`;
+}
 
 async function migrateApplications() {
   const db = getFirestore();
-  const applicationsRef = db.collection("applications");
+  const applicationsRef = db.collection(collectionName("applications"));
 
   console.log("[MIGRATE] Starting applications collection migration...");
 
@@ -43,6 +48,19 @@ async function migrateApplications() {
         updates.batch_processing_completed_at = FieldValue.serverTimestamp();
       }
 
+      if (data.application_pii_encrypted !== true && data.candidate_name && data.candidate_email) {
+        Object.assign(updates, encryptApplicationPII({
+          candidate_name: String(data.candidate_name || ""),
+          candidate_email: String(data.candidate_email || ""),
+          resume_url: String(data.resume_url || ""),
+          message: String(data.message || ""),
+        }), {
+          candidate_name: FieldValue.delete(),
+          candidate_email: FieldValue.delete(),
+          resume_url: FieldValue.delete(),
+          message: FieldValue.delete(),
+        });
+      }
       await applicationsRef.doc(doc.id).update(updates);
       updated++;
 
@@ -60,7 +78,7 @@ async function migrateApplications() {
 
 async function migrateCandidates() {
   const db = getFirestore();
-  const candidatesRef = db.collection("candidates");
+  const candidatesRef = db.collection(collectionName("candidates"));
 
   console.log("[MIGRATE] Starting candidates collection migration...");
 
@@ -81,6 +99,23 @@ async function migrateCandidates() {
         badges: [],
       };
 
+      if (data.pii_encrypted !== true && data.name && data.email) {
+        Object.assign(updates, buildEncryptedCandidateRecord({
+          name: String(data.name || ""),
+          email: String(data.email || ""),
+          phone: String(data.phone || ""),
+          linkedin: String(data.linkedin || ""),
+          resume_url: String(data.resume_url || ""),
+          resume_text: String(data.resume_text || ""),
+        }), {
+          name: FieldValue.delete(),
+          email: FieldValue.delete(),
+          phone: FieldValue.delete(),
+          linkedin: FieldValue.delete(),
+          resume_url: FieldValue.delete(),
+          resume_text: FieldValue.delete(),
+        });
+      }
       await candidatesRef.doc(doc.id).update(updates);
       updated++;
 

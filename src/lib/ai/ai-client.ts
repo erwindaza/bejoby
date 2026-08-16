@@ -1,4 +1,4 @@
-import { Content, GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI, type Content } from "@google/generative-ai";
 import { AIModelKey } from "./governance";
 import { getAIKey, getModelId, getAIProvider, getAIUsageMode } from "./model-selection";
 

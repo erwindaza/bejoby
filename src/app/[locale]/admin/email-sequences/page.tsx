@@ -115,7 +115,6 @@ export default function EmailSequencesAdmin() {
     window.sessionStorage.setItem("bejoby_admin_secret", trimmed);
     setAdminSecret(trimmed);
   };
-
   const getStatusBadge = (status: string) => {
     const classes: Record<string, string> = {
       active: "bg-blue-900/30 text-blue-300 border border-blue-500/30",
@@ -180,7 +179,6 @@ export default function EmailSequencesAdmin() {
             </div>
           </form>
         )}
-
         {/* Form */}
         {showForm && (
           <div className="bg-slate-800 border border-slate-700 rounded-xl p-6 mb-8">

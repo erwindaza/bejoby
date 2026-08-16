@@ -5,6 +5,7 @@ import { success, created, error, serverError } from "@/lib/utils/api-response";
 import { FieldValue } from "@google-cloud/firestore";
 import { notifyApplicationReceived } from "@/lib/email";
 import { getSessionUser } from "@/lib/auth";
+import { buildEmployerSafeApplicationView, decryptCandidatePII, encryptApplicationPII } from "@/lib/security/pii";
 
 // GET /api/applications — List applications for employer's jobs
 export async function GET() {
@@ -32,12 +33,13 @@ export async function GET() {
     for (const chunk of chunks) {
       const snap = await applications().where("job_id", "in", chunk).get();
       for (const doc of snap.docs) {
-        const data = doc.data();
-        const job = jobMap.get(data.job_id);
+        const data = doc.data() as Record<string, unknown>;
+        const jobId = String(data.job_id || "");
+        const job = jobMap.get(jobId);
+        const safeApp = buildEmployerSafeApplicationView(doc.id, data);
         allApps.push({
-          id: doc.id,
-          ...data,
-          job_title: (job as Record<string, unknown>)?.title || data.job_id,
+          ...safeApp,
+          job_title: (job as Record<string, unknown>)?.title || jobId,
         });
       }
     }
@@ -74,6 +76,7 @@ export async function POST(req: Request) {
     // Verify candidate exists
     const candidateDoc = await candidates().doc(parsed.data.candidate_id).get();
     if (!candidateDoc.exists) return error("Candidate not found", 404);
+    const candidateData = decryptCandidatePII(candidateDoc.data() as Record<string, unknown>);
 
     // Check for duplicate application
     const existing = await applications()
@@ -85,7 +88,17 @@ export async function POST(req: Request) {
 
     const docRef = applications().doc();
     await docRef.set({
-      ...parsed.data,
+      job_id: parsed.data.job_id,
+      candidate_id: parsed.data.candidate_id,
+      consent_share_data: parsed.data.consent_share_data,
+      cv_path: parsed.data.cv_path || "",
+      cv_filename: parsed.data.cv_filename || "",
+      ...encryptApplicationPII({
+        candidate_name: parsed.data.candidate_name,
+        candidate_email: parsed.data.candidate_email,
+        resume_url: parsed.data.resume_url,
+        message: parsed.data.message,
+      }),
       status: "pending",
       created_at: FieldValue.serverTimestamp(),
       updated_at: FieldValue.serverTimestamp(),
@@ -97,13 +110,19 @@ export async function POST(req: Request) {
       id: docRef.id,
       job_id: parsed.data.job_id,
       job_title: jobData?.title || "(sin título)",
-      candidate_name: parsed.data.candidate_name,
-      candidate_email: parsed.data.candidate_email,
+      candidate_name: String(candidateData.name || parsed.data.candidate_name),
+      candidate_email: String(candidateData.email || parsed.data.candidate_email),
       message: parsed.data.message,
       cv_filename: parsed.data.cv_filename || undefined,
     }).catch(() => {});
 
-    return created({ id: docRef.id, ...parsed.data, status: "pending" });
+    return created({
+      id: docRef.id,
+      job_id: parsed.data.job_id,
+      candidate_id: parsed.data.candidate_id,
+      status: "pending",
+      application_pii_encrypted: true,
+    });
   } catch (err) {
     console.error("[POST /api/applications]", err);
     return serverError();

@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { estimateCostPerCandidate } from "@/lib/services/ai-cost-service";
 
 type Params = { params: Promise<{ id: string }> };
-
 /**
  * GET /api/admin/candidates/:id/ai-cost
  * Returns estimated total AI cost for a candidate across all their applications.

@@ -4,6 +4,7 @@ import { applications, sessions, otps, dataRequests, users, candidates } from "@
 import { success, error, serverError } from "@/lib/utils/api-response";
 import { Storage } from "@google-cloud/storage";
 import { parseServiceAccountKey } from "@/lib/gcp/firestore";
+import { hashForLookup } from "@/lib/security/pii";
 
 const ADMIN_SECRET = process.env.ADMIN_SECRET || "";
 const CV_BUCKET = process.env.GCS_CV_BUCKET || "bejoby-cvs";
@@ -60,13 +61,23 @@ export async function POST(req: Request) {
 
         // Delete candidate record
         if (data.email) {
-          const candSnap = await candidates().where("email", "==", data.email).get();
+          const emailHash = hashForLookup(String(data.email));
+          const [candByHash, candLegacy] = await Promise.all([
+            candidates().where("email_hash", "==", emailHash).get(),
+            candidates().where("email", "==", data.email).get(),
+          ]);
+          const candSnap = !candByHash.empty ? candByHash : candLegacy;
           for (const cd of candSnap.docs) await cd.ref.delete();
         }
 
         // Delete CVs from GCS
         if (data.email) {
-          const appSnap = await applications().where("candidate_email", "==", data.email).get();
+          const emailHash = hashForLookup(String(data.email));
+          const [appsByHash, appsLegacy] = await Promise.all([
+            applications().where("candidate_email_hash", "==", emailHash).get(),
+            applications().where("candidate_email", "==", data.email).get(),
+          ]);
+          const appSnap = !appsByHash.empty ? appsByHash : appsLegacy;
           for (const appDoc of appSnap.docs) {
             const appData = appDoc.data();
             if (appData.cv_path) {
