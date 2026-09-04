@@ -1,5 +1,5 @@
 // src/app/api/applications/[id]/route.ts
-import { applications, jobs } from "@/lib/gcp/collections";
+import { applications, jobs, interactions } from "@/lib/gcp/collections";
 import { updateApplicationSchema } from "@/lib/validators/application";
 import { success, error, notFound, serverError } from "@/lib/utils/api-response";
 import { FieldValue } from "@google-cloud/firestore";
@@ -10,44 +10,103 @@ import { buildEmployerSafeApplicationView, decryptApplicationPII } from "@/lib/s
 
 type Params = { params: Promise<{ id: string }> };
 
-async function assertEmployerOwnsApplication(applicationId: string) {
-  const user = await getSessionUser();
-  if (!user || !user.employer_id) return { errorResponse: error("Unauthorized", 401) };
-
-  const doc = await applications().doc(applicationId).get();
-  if (!doc.exists) return { errorResponse: notFound("Application") };
-
-  const appData = doc.data() as Record<string, unknown>;
-  const jobDoc = await jobs().doc(String(appData.job_id || "")).get();
-  if (!jobDoc.exists) return { errorResponse: notFound("Job") };
-  const jobData = jobDoc.data() as Record<string, unknown>;
-  if (jobData.employer_id !== user.employer_id) {
-    return { errorResponse: error("Forbidden", 403) };
-  }
-
-  return { user, doc, appData, jobDoc, jobData };
-}
-
-// GET /api/applications/:id
+// GET /api/applications/:id — Get application details (candidate or employer view)
 export async function GET(_req: Request, { params }: Params) {
   try {
     const { id } = await params;
-    const access = await assertEmployerOwnsApplication(id);
-    if ("errorResponse" in access) return access.errorResponse;
+    const user = await getSessionUser();
+    if (!user) return error("Unauthorized", 401);
 
-    return success(buildEmployerSafeApplicationView(access.doc.id, access.appData));
+    const doc = await applications().doc(id).get();
+    if (!doc.exists) return notFound("Application");
+
+    const appData = doc.data() as Record<string, unknown>;
+    const candidateId = String(appData.candidate_id || "");
+    const jobId = String(appData.job_id || "");
+
+    // Check access: candidate can view own app, employer can view apps to their jobs
+    let isAuthorized = false;
+
+    // Case 1: Candidate viewing own application
+    if (candidateId === user.id && !user.employer_id) {
+      isAuthorized = true;
+    }
+
+    // Case 2: Employer viewing application to their jobs
+    if (user.employer_id && jobId) {
+      const jobDoc = await jobs().doc(jobId).get();
+      if (jobDoc.exists) {
+        const jobData = jobDoc.data() as Record<string, unknown>;
+        if (jobData.employer_id === user.employer_id) {
+          isAuthorized = true;
+        }
+      }
+    }
+
+    if (!isAuthorized) {
+      return error("Forbidden", 403);
+    }
+
+    // Fetch interactions (candidate: public only, employer: all)
+    const interactionsList = await interactions()
+      .where("application_id", "==", id)
+      .orderBy("created_at", "asc")
+      .get();
+
+    const interactionsData = interactionsList.docs
+      .filter((doc) => {
+        const data = doc.data();
+        // Candidate only sees public interactions
+        if (candidateId === user.id) {
+          return data.is_public === true;
+        }
+        // Employer sees all
+        return true;
+      })
+      .map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+    // Candidate view: return base application + public interactions
+    if (candidateId === user.id) {
+      return success({
+        application: doc.data(),
+        interactions: interactionsData,
+      });
+    }
+
+    // Employer view: return sanitized view
+    return success({
+      application: buildEmployerSafeApplicationView(doc.id, appData),
+      interactions: interactionsData,
+    });
   } catch (err) {
     console.error("[GET /api/applications/:id]", err);
     return serverError();
   }
 }
 
-// PUT /api/applications/:id — Update application status
+// PUT /api/applications/:id — Update application status (employer only)
 export async function PUT(req: Request, { params }: Params) {
   try {
     const { id } = await params;
-    const access = await assertEmployerOwnsApplication(id);
-    if ("errorResponse" in access) return access.errorResponse;
+    const user = await getSessionUser();
+    if (!user || !user.employer_id) return error("Unauthorized", 401);
+
+    const doc = await applications().doc(id).get();
+    if (!doc.exists) return notFound("Application");
+
+    const appData = doc.data() as Record<string, unknown>;
+    const jobId = String(appData.job_id || "");
+
+    // Verify employer owns the job
+    const jobDoc = await jobs().doc(jobId).get();
+    if (!jobDoc.exists) return notFound("Job");
+    const jobData = jobDoc.data() as Record<string, unknown>;
+    if (jobData.employer_id !== user.employer_id) {
+      return error("Forbidden", 403);
+    }
 
     const body = await req.json().catch(() => null);
     const parsed = updateApplicationSchema.safeParse(body);

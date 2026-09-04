@@ -96,6 +96,32 @@ export function isSmtpConfigured(): boolean {
   return isConfigured();
 }
 
+/**
+ * Send an email to a specific external address (candidate <-> employer messages).
+ * Unlike send(), this targets a real recipient, not the internal NOTIFY_EMAIL list.
+ * Never throws — failures are logged silently so a message send never breaks the API call.
+ */
+export async function sendToAddress(to: string, subject: string, html: string): Promise<boolean> {
+  if (!SMTP_USER || !SMTP_PASS) {
+    console.warn("[email] SMTP not configured — skipping message to", to);
+    return false;
+  }
+  try {
+    const transporter = getTransporter();
+    await transporter.sendMail({
+      from: `"BeJoby" <${SMTP_FROM}>`,
+      to,
+      subject,
+      html,
+    });
+    console.log(`[email] Sent to ${to}: ${subject}`);
+    return true;
+  } catch (err) {
+    console.error("[email] Failed to send to", to, err instanceof Error ? err.message : err);
+    return false;
+  }
+}
+
 // ─── Specific notification helpers ───────────────────────────────────────
 
 export async function notifyJobPosted(job: {

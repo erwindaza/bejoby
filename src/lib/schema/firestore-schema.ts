@@ -176,6 +176,101 @@ export const PARTNERS_SCHEMA = {
   ],
 };
 
+// ===== TRANSACTIONS Collection (NEW) =====
+// Payment and feature purchase history
+
+export const TRANSACTIONS_SCHEMA = {
+  required_fields: [
+    "employer_id",      // ref to employer
+    "type",             // enum: publish_job | featured_upgrade | homepage | profile_upgrade | featured_renewal
+    "amount",           // number (currency units)
+    "currency",         // USD | CLP | etc
+    "status",           // enum: pending | completed | failed | refunded
+    "created_at",       // timestamp
+  ],
+  optional_fields: [
+    "related_entity_id",      // ref to job_posting (if applicable)
+    "completed_at",           // timestamp (when status -> completed)
+    "payment_method",         // credit_card | paypal | vtex_checkout
+    "vtex_order_id",          // string (if from VTEX)
+    "description",            // string
+  ],
+};
+
+// ===== INTERACTIONS Collection (NEW) =====
+// Emails, internal notes, status changes between candidate and employer
+
+export const INTERACTIONS_SCHEMA = {
+  required_fields: [
+    "application_id",    // ref to application
+    "from_user_id",      // user who sent (candidate or employer)
+    "type",              // enum: email | internal_note | status_change
+    "body",              // text content
+    "created_at",        // timestamp
+  ],
+  optional_fields: [
+    "subject",           // string (for emails)
+    "is_public",         // boolean (candidate can see or not)
+  ],
+};
+
+// ===== APPLICATIONS Collection (EXTEND) =====
+// Add history tracking fields
+
+export const APPLICATIONS_SCHEMA_EXTEND = {
+  new_fields_for_history: {
+    status: {
+      type: "string",
+      enum: ["enviada", "revisada", "entrevista", "rechazo", "oferta", "aceptada", "expirada"],
+      default: "enviada",
+    },
+    status_history: {
+      type: "array<object>",
+      description: "Timeline of status changes",
+      fields: {
+        status: "string",
+        timestamp: "timestamp",
+        note: "string (optional)",
+      },
+    },
+    last_updated_at: {
+      type: "timestamp",
+      description: "Last update to application",
+    },
+    feedback: {
+      type: "string",
+      description: "Private note from employer (not visible to candidate)",
+    },
+  },
+  note: "status field overrides existing 'status' — ensure migration adds history",
+};
+
+// ===== JOB_POSTINGS Collection (EXTEND) =====
+// Add publication tracking
+
+export const JOB_POSTINGS_SCHEMA_EXTEND = {
+  new_fields_for_history: {
+    status: {
+      type: "string",
+      enum: ["activa", "cerrada", "archivada"],
+      default: "activa",
+    },
+    published_at: {
+      type: "timestamp",
+      description: "When posting was published",
+    },
+    closed_at: {
+      type: "timestamp",
+      description: "When posting was closed (optional)",
+    },
+    application_count: {
+      type: "number",
+      default: 0,
+      description: "Denormalized count for performance",
+    },
+  },
+};
+
 // ===== Migration Instructions =====
 
 export const MIGRATION_STEPS = [
@@ -187,4 +282,12 @@ export const MIGRATION_STEPS = [
   "6. Create ai_audit_log collection (if not exists)",
   "7. Create partners collection (if not exists)",
   "8. Verify candidates have: email, phone, name, cv_path, salary_expected, consent_shared",
+  "9. [NEW] Add status_history = [] to all existing applications",
+  "10. [NEW] Add status = 'enviada' to all existing applications (if not present)",
+  "11. [NEW] Add last_updated_at = now() to all existing applications",
+  "12. [NEW] Create transactions collection (auto-created on first insert)",
+  "13. [NEW] Create interactions collection (auto-created on first insert)",
+  "14. [NEW] Add status = 'activa' to all existing job_postings",
+  "15. [NEW] Add published_at = now() to all existing job_postings",
+  "16. [NEW] Add application_count = (query count) to all job_postings",
 ];

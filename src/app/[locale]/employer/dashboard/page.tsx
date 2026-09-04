@@ -43,6 +43,20 @@ const t = {
     refreshBtn: "Actualizar",
     errorLoad: "Error al cargar postulaciones",
     errorStatus: "Error al actualizar estado",
+    tabApplications: "Postulaciones",
+    tabTransactions: "Transacciones",
+    noTransactions: "Sin transacciones aún",
+    txType: "Tipo",
+    txAmount: "Monto",
+    txStatus: "Estado",
+    txDate: "Fecha",
+    balancePending: "Pendiente",
+    balanceCompleted: "Pagado",
+    exportCsv: "Exportar CSV",
+    txStatusPending: "Pendiente",
+    txStatusCompleted: "Completado",
+    txStatusFailed: "Fallido",
+    txStatusRefunded: "Reembolsado",
   },
   en: {
     title: "Employer Dashboard",
@@ -80,6 +94,20 @@ const t = {
     refreshBtn: "Refresh",
     errorLoad: "Error loading applications",
     errorStatus: "Error updating status",
+    tabApplications: "Applications",
+    tabTransactions: "Transactions",
+    noTransactions: "No transactions yet",
+    txType: "Type",
+    txAmount: "Amount",
+    txStatus: "Status",
+    txDate: "Date",
+    balancePending: "Pending",
+    balanceCompleted: "Paid",
+    exportCsv: "Export CSV",
+    txStatusPending: "Pending",
+    txStatusCompleted: "Completed",
+    txStatusFailed: "Failed",
+    txStatusRefunded: "Refunded",
   },
 };
 
@@ -106,6 +134,16 @@ interface Application {
   cv_filename?: string;
   ai_analysis?: AiAnalysis;
   created_at?: { _seconds: number };
+}
+
+interface Transaction {
+  id: string;
+  type: string;
+  amount: number;
+  currency: string;
+  status: string;
+  created_at?: { _seconds: number };
+  description?: string;
 }
 
 function ScoreBadge({ score }: { score: number }) {
@@ -144,12 +182,18 @@ export default function EmployerDashboard() {
   const l = t[lang];
   const { user, loading: authLoading, openLogin } = useAuth();
 
+  const [tab, setTab] = useState<"applications" | "transactions">("applications");
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [expandedJob, setExpandedJob] = useState<string | null>(null);
   const [expandedApp, setExpandedApp] = useState<string | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
+
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [txLoading, setTxLoading] = useState(false);
+  const [txError, setTxError] = useState("");
+  const [balance, setBalance] = useState({ pending: 0, completed: 0 });
 
   const fetchApps = useCallback(async () => {
     setLoading(true);
@@ -169,6 +213,28 @@ export default function EmployerDashboard() {
     }
   }, [l.errorLoad]);
 
+  const fetchTransactions = useCallback(async () => {
+    setTxLoading(true);
+    setTxError("");
+    try {
+      const res = await fetch("/api/employer/transactions");
+      const data = await res.json();
+      if (res.ok) {
+        setTransactions(data.transactions || []);
+        setBalance({
+          pending: data.balance?.pending || 0,
+          completed: data.balance?.completed || 0,
+        });
+      } else {
+        setTxError(data.error || l.errorLoad);
+      }
+    } catch {
+      setTxError(l.errorLoad);
+    } finally {
+      setTxLoading(false);
+    }
+  }, [l.errorLoad]);
+
   useEffect(() => {
     if (!authLoading && user?.employer_id) {
       fetchApps();
@@ -176,6 +242,12 @@ export default function EmployerDashboard() {
       setLoading(false);
     }
   }, [authLoading, user, fetchApps]);
+
+  useEffect(() => {
+    if (!authLoading && user?.employer_id && tab === "transactions" && transactions.length === 0 && !txLoading) {
+      fetchTransactions();
+    }
+  }, [authLoading, user, tab, fetchTransactions, transactions.length, txLoading]);
 
   const updateStatus = async (appId: string, newStatus: string) => {
     setUpdatingStatus(appId);
@@ -265,6 +337,106 @@ export default function EmployerDashboard() {
         </div>
       </section>
 
+      {/* Tabs */}
+      <div className="max-w-4xl mx-auto px-4 flex gap-2 border-b border-slate-700 mb-4">
+        <button
+          onClick={() => setTab("applications")}
+          className={`px-4 py-2 text-sm font-medium border-b-2 transition ${
+            tab === "applications" ? "border-blue-500 text-white" : "border-transparent text-slate-400 hover:text-slate-200"
+          }`}
+        >
+          {l.tabApplications}
+        </button>
+        <button
+          onClick={() => setTab("transactions")}
+          className={`px-4 py-2 text-sm font-medium border-b-2 transition ${
+            tab === "transactions" ? "border-blue-500 text-white" : "border-transparent text-slate-400 hover:text-slate-200"
+          }`}
+        >
+          {l.tabTransactions}
+        </button>
+      </div>
+
+      {tab === "transactions" ? (
+        <section className="max-w-4xl mx-auto px-4 py-4">
+          {/* Balance summary */}
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="bg-slate-800/50 rounded-xl border border-slate-700 p-4">
+              <p className="text-xs text-slate-500 uppercase">{l.balancePending}</p>
+              <p className="text-2xl font-bold text-yellow-400 mt-1">${balance.pending.toLocaleString()}</p>
+            </div>
+            <div className="bg-slate-800/50 rounded-xl border border-slate-700 p-4">
+              <p className="text-xs text-slate-500 uppercase">{l.balanceCompleted}</p>
+              <p className="text-2xl font-bold text-green-400 mt-1">${balance.completed.toLocaleString()}</p>
+            </div>
+          </div>
+
+          <div className="flex justify-end mb-4">
+            <Link
+              href="/api/employer/export?type=transactions&format=csv"
+              className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white text-sm rounded-lg transition"
+            >
+              {l.exportCsv}
+            </Link>
+          </div>
+
+          {txLoading && (
+            <div className="text-center py-16">
+              <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+              <p className="text-slate-400">{l.loading}</p>
+            </div>
+          )}
+
+          {txError && <p className="text-red-400 text-center py-8">{txError}</p>}
+
+          {!txLoading && !txError && transactions.length === 0 && (
+            <p className="text-slate-500 text-center py-16">{l.noTransactions}</p>
+          )}
+
+          {!txLoading && !txError && transactions.length > 0 && (
+            <div className="bg-slate-800/50 rounded-xl border border-slate-700 overflow-hidden">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-slate-700 text-left text-slate-500 text-xs uppercase">
+                    <th className="px-4 py-3">{l.txDate}</th>
+                    <th className="px-4 py-3">{l.txType}</th>
+                    <th className="px-4 py-3">{l.txAmount}</th>
+                    <th className="px-4 py-3">{l.txStatus}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {transactions.map((tx) => {
+                    const txStatusMap: Record<string, string> = {
+                      pending: l.txStatusPending,
+                      completed: l.txStatusCompleted,
+                      failed: l.txStatusFailed,
+                      refunded: l.txStatusRefunded,
+                    };
+                    const txStatusColor: Record<string, string> = {
+                      pending: "text-yellow-400",
+                      completed: "text-green-400",
+                      failed: "text-red-400",
+                      refunded: "text-slate-400",
+                    };
+                    return (
+                      <tr key={tx.id} className="border-b border-slate-700/50 last:border-b-0">
+                        <td className="px-4 py-3 text-slate-400">{formatDate(tx.created_at)}</td>
+                        <td className="px-4 py-3 text-slate-300">{tx.type}</td>
+                        <td className="px-4 py-3 text-white font-medium">
+                          {tx.currency} {tx.amount.toLocaleString()}
+                        </td>
+                        <td className={`px-4 py-3 font-medium ${txStatusColor[tx.status] || ""}`}>
+                          {txStatusMap[tx.status] || tx.status}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+      ) : (
       <section className="max-w-4xl mx-auto px-4 py-4">
         {/* Loading */}
         {(authLoading || loading) && (
@@ -454,6 +626,7 @@ export default function EmployerDashboard() {
           </div>
         ))}
       </section>
+      )}
     </main>
   );
 }

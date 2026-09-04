@@ -37,3 +37,6 @@ export const privacyRequests = () => collection("privacy_requests");
 export const auditEvents = () => collection("audit_events");
 export const vendorRegistry = () => collection("vendor_registry");
 export const aiModelRegistry = () => collection("ai_model_registry");
+export const transactions = () => collection("transactions");
+export const interactions = () => collection("interactions");
+export const jobPostings = () => collection("job_postings");

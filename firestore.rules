@@ -1,0 +1,129 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper: check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Helper: get user ID from auth
+    function userId() {
+      return request.auth.uid;
+    }
+
+    // Helper: check if user is employer (has employer_id custom claim)
+    function isEmployer() {
+      return request.auth.token.employer_id != null;
+    }
+
+    // Helper: check if user is candidate
+    function isCandidate() {
+      return request.auth.token.get('role') == 'candidate' ||
+           (request.auth.token.employer_id == null && isAuthenticated());
+    }
+
+    // === CANDIDATES ===
+    match /candidates/{candidateId} {
+      allow read: if isAuthenticated() && userId() == candidateId;
+      allow update: if isAuthenticated() && userId() == candidateId;
+      allow create: if isAuthenticated();
+      allow delete: if false; // Never allow delete (audit trail)
+    }
+
+    // === EMPLOYERS ===
+    match /employers/{employerId} {
+      allow read: if isAuthenticated() && userId() == employerId;
+      allow update: if isAuthenticated() && userId() == employerId;
+      allow create: if isAuthenticated();
+      allow delete: if false;
+    }
+
+    // === APPLICATIONS ===
+    match /applications/{applicationId} {
+      // Candidate can read only their own applications
+      allow read: if isAuthenticated() &&
+                     resource.data.candidate_id == userId();
+
+      // Employer can read applications to their postings
+      allow read: if isAuthenticated() &&
+                     resource.data.employer_id == userId();
+
+      // Candidate can create application (auto-fills candidate_id)
+      allow create: if isAuthenticated() &&
+                       request.resource.data.candidate_id == userId();
+
+      // Employer can update application (status, feedback)
+      allow update: if isAuthenticated() &&
+                       resource.data.employer_id == userId() &&
+                       // Only allow update of specific fields (no tampering with core fields)
+                       (request.resource.data.diff(resource.data).affectedKeys()
+                        .hasOnly(['status', 'feedback', 'status_history', 'last_updated_at']));
+
+      allow delete: if false; // Never delete (audit trail)
+    }
+
+    // === JOB_POSTINGS ===
+    match /job_postings/{jobPostingId} {
+      // Anyone can read active job postings
+      allow read: if resource.data.status == 'activa' ||
+                     (isAuthenticated() && resource.data.employer_id == userId());
+
+      // Employer can create job posting
+      allow create: if isAuthenticated() &&
+                       request.resource.data.employer_id == userId();
+
+      // Employer can update their own postings
+      allow update: if isAuthenticated() &&
+                       resource.data.employer_id == userId();
+
+      allow delete: if false;
+    }
+
+    // === TRANSACTIONS ===
+    match /transactions/{transactionId} {
+      // Employer can only read their own transactions
+      allow read: if isAuthenticated() &&
+                     resource.data.employer_id == userId();
+
+      // Create (via backend only, not direct writes)
+      allow create: if false; // Backend-only
+
+      // Backend updates (via Cloud Function)
+      allow update: if false; // Backend-only
+
+      allow delete: if false;
+    }
+
+    // === INTERACTIONS ===
+    match /interactions/{interactionId} {
+      // Candidate can read public interactions on their applications
+      allow read: if isAuthenticated() &&
+                     resource.data.is_public == true &&
+                     exists(/databases/$(database)/documents/applications/$(resource.data.application_id)) &&
+                     get(/databases/$(database)/documents/applications/$(resource.data.application_id)).data.candidate_id == userId();
+
+      // Employer can read all interactions on their applications
+      allow read: if isAuthenticated() &&
+                     exists(/databases/$(database)/documents/applications/$(resource.data.application_id)) &&
+                     get(/databases/$(database)/documents/applications/$(resource.data.application_id)).data.employer_id == userId();
+
+      // Backend-only creation
+      allow create: if false;
+
+      allow delete: if false;
+    }
+
+    // === SESSIONS ===
+    match /sessions/{sessionId} {
+      allow read: if isAuthenticated() && request.auth.token.session_id == sessionId;
+      allow write: if false; // Backend-only
+      allow delete: if false;
+    }
+
+    // Deny all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

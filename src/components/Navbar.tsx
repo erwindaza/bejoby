@@ -22,6 +22,7 @@ const labels = {
     login: "Iniciar Sesión",
     myJobs: "Mis ofertas",
     dashboard: "Panel",
+    myApplications: "Mis Postulaciones",
     logoutLabel: "Cerrar sesión",
   },
   en: {
@@ -31,6 +32,7 @@ const labels = {
     login: "Sign In",
     myJobs: "My jobs",
     dashboard: "Dashboard",
+    myApplications: "My Applications",
     logoutLabel: "Sign out",
   },
 };
@@ -136,7 +138,7 @@ export default function Navbar() {
                   >
                     {t.postJob}
                   </Link>
-                  {user.employer_id && (
+                  {user.employer_id ? (
                     <>
                       <Link
                         href={`/${locale}/employer/dashboard`}
@@ -153,6 +155,14 @@ export default function Navbar() {
                         {t.myJobs}
                       </Link>
                     </>
+                  ) : (
+                    <Link
+                      href={`/${locale}/candidate/dashboard`}
+                      className="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white transition"
+                      onClick={() => setUserMenuOpen(false)}
+                    >
+                      {t.myApplications}
+                    </Link>
                   )}
                   <button
                     onClick={handleLogout}
@@ -221,13 +231,21 @@ export default function Navbar() {
               <div className="text-xs text-slate-500 pt-2 border-t border-slate-700">
                 {user.email}
               </div>
-              {user.employer_id && (
+              {user.employer_id ? (
                 <Link
                   href={`/${locale}/employer/dashboard`}
                   className="block text-slate-300 hover:text-white py-2"
                   onClick={() => setOpen(false)}
                 >
                   {t.dashboard}
+                </Link>
+              ) : (
+                <Link
+                  href={`/${locale}/candidate/dashboard`}
+                  className="block text-slate-300 hover:text-white py-2"
+                  onClick={() => setOpen(false)}
+                >
+                  {t.myApplications}
                 </Link>
               )}
               <button

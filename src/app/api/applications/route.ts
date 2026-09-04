@@ -7,22 +7,67 @@ import { notifyApplicationReceived } from "@/lib/email";
 import { getSessionUser } from "@/lib/auth";
 import { buildEmployerSafeApplicationView, decryptCandidatePII, encryptApplicationPII } from "@/lib/security/pii";
 
-// GET /api/applications — List applications for employer's jobs
+// GET /api/applications — List applications (candidate-only view)
+// NOTE: Employer view moved to GET /api/employer/job-postings/[id]/applications
 export async function GET() {
   try {
     const user = await getSessionUser();
-    if (!user || !user.employer_id) {
+    if (!user) {
       return error("Unauthorized", 401);
     }
 
-    // 1. Get all jobs belonging to this employer
+    // Candidate listing their own applications
+    if (!user.employer_id) {
+      const candidateId = user.id;
+      const limit = 100;
+
+      // Get candidate's applications (ordered by submission date, newest first)
+      const snap = await applications()
+        .where("candidate_id", "==", candidateId)
+        .orderBy("created_at", "desc")
+        .limit(limit)
+        .get();
+
+      const jobIds = [...new Set(snap.docs.map((doc) => String(doc.data().job_id || "")))].filter(Boolean);
+      const jobMap = new Map<string, Record<string, unknown>>();
+      for (let i = 0; i < jobIds.length; i += 30) {
+        const chunk = jobIds.slice(i, i + 30);
+        if (chunk.length === 0) continue;
+        const jobSnap = await jobs().where("__name__", "in", chunk).get();
+        jobSnap.docs.forEach((d) => jobMap.set(d.id, d.data()));
+      }
+
+      const apps = snap.docs.map((doc) => {
+        const data = doc.data() as Record<string, unknown>;
+        const job = jobMap.get(String(data.job_id || ""));
+        return {
+          id: doc.id,
+          job_id: data.job_id,
+          job_title: job?.title || data.job_id,
+          company_display: job?.company_display || "",
+          candidate_id: data.candidate_id,
+          status: data.status || "pending",
+          created_at: data.created_at,
+          updated_at: data.updated_at,
+          cv_path: data.cv_path,
+          consent_share_data: data.consent_share_data,
+        };
+      });
+
+      return success({
+        applications: apps,
+        total: apps.length,
+        limit,
+      });
+    }
+
+    // Employer view: Get applications to their jobs (EXISTING LOGIC)
     const jobSnap = await jobs().where("employer_id", "==", user.employer_id).get();
-    if (jobSnap.empty) return success([]);
+    if (jobSnap.empty) return success({ applications: [], total: 0 });
 
     const jobIds = jobSnap.docs.map((d) => d.id);
     const jobMap = new Map(jobSnap.docs.map((d) => [d.id, { id: d.id, ...d.data() }]));
 
-    // 2. Fetch applications for those jobs (Firestore 'in' supports max 30)
     const chunks: string[][] = [];
     for (let i = 0; i < jobIds.length; i += 30) {
       chunks.push(jobIds.slice(i, i + 30));
@@ -44,14 +89,16 @@ export async function GET() {
       }
     }
 
-    // Sort by created_at desc
     allApps.sort((a, b) => {
       const ta = a.created_at?._seconds ?? 0;
       const tb = b.created_at?._seconds ?? 0;
       return tb - ta;
     });
 
-    return success(allApps);
+    return success({
+      applications: allApps,
+      total: allApps.length,
+    });
   } catch (err) {
     console.error("[GET /api/applications]", err);
     return serverError();
