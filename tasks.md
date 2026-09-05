@@ -13,7 +13,13 @@
 - ✅ TASK-019 (Unit tests: 21 tests cubriendo aislamiento candidato/empleador, guards de estado, CSV)
 - ⏳ TASK-020/021 (E2E manual — pendiente de probar en `npm run dev`)
 - ⏳ TASK-022 (Security review — firestore.rules ya escrito, falta deploy + validación real)
-- ⏳ TASK-023/024/025 (Firestore indexes + deploy — requiere credenciales/aprobación del usuario)
+- ⏳ TASK-023 (Firestore indexes — requiere credenciales/consola GCP)
+- ✅ TASK-024: push a `dev` completo (commit final `e71117f`). **CI en verde**: install, lint, type-check, build y test coverage — todos exitosos (run 33932639574). Vercel debería auto-desplegar a `bejoby.vercel.app`.
+- ⏸️ Promoción a `qa`/`main`: **no ejecutada** — requiere PR + QA Agent + Sonar (cuando esté habilitado) + aprobación explícita, según política "no cambios directos en producción".
+
+**Nota de pipeline:** se agregó gate de SonarQube a `.github/workflows/ci.yml` (dev/qa/main), detrás de `vars.SONAR_ENABLED` hasta configurar `SONAR_TOKEN`/`SONAR_HOST_URL`.
+
+**Incidente de lockfile (resuelto):** el `package-lock.json` generado localmente en macOS (ARM) no incluía las resoluciones de dependencias opcionales específicas de la plataforma Linux x64 (`@parcel/watcher-linux-x64-glibc`, `@swc/helpers@0.5.23` anidado para satisfacer el peerDependency de `@swc/core` que trae `next-intl`), causando fallos repetidos de `npm ci` en CI (Ubuntu). Causa raíz: `npm install` (v11 local) "optimiza" y descarta esas entradas multiplataforma al regenerar el lock. Fix: regenerar el lockfile dentro de un contenedor `docker run --platform linux/amd64 node:20`, y usar `npm ci` (no `npm install`) para instalar localmente después, ya que `npm ci` nunca reescribe el lockfile. Verificado corriendo la cadena completa (`npm ci && lint && tsc && build && vitest --coverage`) dentro del mismo contenedor que usa CI antes de cada push.
 
 **Nota de implementación:** No se construyeron los componentes modales separados descritos originalmente en plan.md (JobPostingDetailModal, CandidateProfileModal, etc.) — se reutilizó el patrón de expansión inline ya existente en el dashboard de empleador (ponytail: rung 2, ya está en el codebase). Los tipos `Transaction`/`Interaction` se mantuvieron; los helpers especulativos `lib/applications.ts`/`lib/transactions.ts` que inventaban un schema distinto al real fueron eliminados.
 
