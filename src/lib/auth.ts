@@ -1,5 +1,5 @@
 // src/lib/auth.ts — Session management helpers
-import { sessions, users } from "./gcp/collections";
+import { sessions, users, candidates } from "./gcp/collections";
 import { cookies } from "next/headers";
 
 const SESSION_COOKIE = "bejoby_session";
@@ -8,6 +8,7 @@ export interface SessionUser {
   id: string;
   email: string;
   employer_id?: string;
+  candidate_id?: string;
 }
 
 /**
@@ -37,10 +38,27 @@ export async function getSessionUser(): Promise<SessionUser | null> {
     if (!userDoc.exists) return null;
 
     const userData = userDoc.data()!;
+    let candidateId: string | undefined = userData.candidate_id;
+
+    // Auto-link candidate profile by email (same pattern as employer_id linking
+    // in verify-code/route.ts) — candidates apply anonymously via a localStorage
+    // id, so the link to a logged-in session only exists via matching email.
+    if (!candidateId && !userData.employer_id) {
+      const candSnapshot = await candidates()
+        .where("email", "==", userData.email)
+        .limit(1)
+        .get();
+      if (!candSnapshot.empty) {
+        candidateId = candSnapshot.docs[0].id;
+        users().doc(session.user_id).update({ candidate_id: candidateId }).catch(() => {});
+      }
+    }
+
     return {
       id: session.user_id,
       email: userData.email,
       employer_id: userData.employer_id,
+      candidate_id: candidateId,
     };
   } catch {
     return null;

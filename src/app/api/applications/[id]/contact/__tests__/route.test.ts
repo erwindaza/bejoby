@@ -36,8 +36,8 @@ function jsonRequest(body: unknown) {
 }
 
 const sessionEmployer = { id: "emp-1", email: "emp@x.com", employer_id: "employer-1" };
-const sessionCandidate1 = { id: "candidate-1", email: "c1@x.com" };
-const sessionCandidate2 = { id: "candidate-2", email: "c2@x.com" };
+const sessionCandidate1 = { id: "session-1", email: "c1@x.com", candidate_id: "candidate-1" };
+const sessionCandidate2 = { id: "session-2", email: "c2@x.com", candidate_id: "candidate-2" };
 
 describe("POST /api/applications/[id]/contact", () => {
   beforeEach(() => {

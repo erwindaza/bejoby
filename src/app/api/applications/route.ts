@@ -18,7 +18,11 @@ export async function GET() {
 
     // Candidate listing their own applications
     if (!user.employer_id) {
-      const candidateId = user.id;
+      if (!user.candidate_id) {
+        // No candidate profile linked to this email yet (never applied/uploaded a CV)
+        return success({ applications: [], total: 0, limit: 100 });
+      }
+      const candidateId = user.candidate_id;
       const limit = 100;
 
       // Get candidate's applications (ordered by submission date, newest first)
