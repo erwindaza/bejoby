@@ -28,7 +28,7 @@ export async function GET(_req: Request, { params }: Params) {
     let isAuthorized = false;
 
     // Case 1: Candidate viewing own application
-    if (candidateId === user.id && !user.employer_id) {
+    if (candidateId === user.candidate_id && !user.employer_id) {
       isAuthorized = true;
     }
 
@@ -57,7 +57,7 @@ export async function GET(_req: Request, { params }: Params) {
       .filter((doc) => {
         const data = doc.data();
         // Candidate only sees public interactions
-        if (candidateId === user.id) {
+        if (candidateId === user.candidate_id) {
           return data.is_public === true;
         }
         // Employer sees all
@@ -69,7 +69,7 @@ export async function GET(_req: Request, { params }: Params) {
       }));
 
     // Candidate view: return base application + public interactions
-    if (candidateId === user.id) {
+    if (candidateId === user.candidate_id) {
       return success({
         application: doc.data(),
         interactions: interactionsData,

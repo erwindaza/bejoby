@@ -7,6 +7,7 @@ interface AuthUser {
   user_id: string;
   email: string;
   employer_id: string | null;
+  candidate_id?: string | null;
 }
 
 interface AuthContextType {
@@ -57,6 +58,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     refresh();
   }, [refresh]);
+
+  // Sync candidate applications after login if candidate_id not yet linked
+  useEffect(() => {
+    if (user && !user.employer_id && !user.candidate_id) {
+      fetch("/api/candidates/sync-applications", { method: "POST" })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.data?.synced) {
+            console.log("[SYNC-SUCCESS] Candidate profile linked");
+            refresh();
+          }
+        })
+        .catch((err) => console.log("[SYNC-ERROR]", err));
+    }
+  }, [user, refresh]);
 
   return (
     <AuthContext.Provider

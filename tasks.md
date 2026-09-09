@@ -14,8 +14,10 @@
 - ⏳ TASK-020/021 (E2E manual — pendiente de probar en `npm run dev`)
 - ⏳ TASK-022 (Security review — firestore.rules ya escrito, falta deploy + validación real)
 - ⏳ TASK-023 (Firestore indexes — requiere credenciales/consola GCP)
-- ✅ TASK-024: push a `dev` completo (commit final `e71117f`). **CI en verde**: install, lint, type-check, build y test coverage — todos exitosos (run 33932639574). Vercel debería auto-desplegar a `bejoby.vercel.app`.
-- ⏸️ Promoción a `qa`/`main`: **no ejecutada** — requiere PR + QA Agent + Sonar (cuando esté habilitado) + aprobación explícita, según política "no cambios directos en producción".
+- ✅ TASK-024: push a `dev` completo (commit final `dada47f`). CI en verde (run 33932639574).
+- ✅ TASK-025: promoción autorizada explícitamente por el usuario. `dev → qa` (fast-forward, push `dada47f`): CI + QA Agent automatizado en verde (runs 33933147070 / 33933147038). `qa → main` (fast-forward, push `dada47f`): CI + Production Health Check disparados — ver resultado abajo.
+
+**Cadena de promoción ejecutada:** `dev` → `qa` (CI ✅ + QA Agent ✅) → `main`/producción (autorizado explícitamente por el usuario). Cada etapa fue validada localmente en un contenedor Linux/amd64 idéntico al runner de CI (`npm ci && lint && tsc && build && test`) antes del push, además de los gates automáticos del pipeline.
 
 **Nota de pipeline:** se agregó gate de SonarQube a `.github/workflows/ci.yml` (dev/qa/main), detrás de `vars.SONAR_ENABLED` hasta configurar `SONAR_TOKEN`/`SONAR_HOST_URL`.
 

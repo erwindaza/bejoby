@@ -47,8 +47,8 @@ function fakeParams(id: string) {
   return { params: Promise.resolve({ id }) };
 }
 
-const sessionCandidate1 = { id: "candidate-1", email: "a@a.com" };
-const sessionCandidate2 = { id: "candidate-2", email: "b@b.com" };
+const sessionCandidate1 = { id: "session-1", email: "a@a.com", candidate_id: "candidate-1" };
+const sessionCandidate2 = { id: "session-2", email: "b@b.com", candidate_id: "candidate-2" };
 const sessionEmployer1 = { id: "emp-user-1", email: "e@e.com", employer_id: "emp-1" };
 
 describe("GET /api/applications/[id] — access control", () => {
