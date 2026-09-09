@@ -28,7 +28,7 @@ export async function POST(req: Request, { params }: Params) {
     if (!appDoc.exists) return notFound("Application");
 
     const appData = appDoc.data() as Record<string, unknown>;
-    if (appData.candidate_id !== user.id) {
+    if (!user.candidate_id || appData.candidate_id !== user.candidate_id) {
       return error("Forbidden", 403);
     }
 

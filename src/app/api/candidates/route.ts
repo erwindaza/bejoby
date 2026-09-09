@@ -23,6 +23,10 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => null);
+    if (body?.email) {
+      body.email = body.email.toLowerCase().trim();
+    }
+
     const parsed = createCandidateSchema.safeParse(body);
 
     if (!parsed.success) {
