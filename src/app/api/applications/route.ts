@@ -113,6 +113,12 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => null);
+
+    // Normalize email before validation
+    if (body?.candidate_email) {
+      body.candidate_email = body.candidate_email.toLowerCase().trim();
+    }
+
     const parsed = createApplicationSchema.safeParse(body);
 
     if (!parsed.success) {

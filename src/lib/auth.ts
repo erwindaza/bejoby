@@ -44,13 +44,17 @@ export async function getSessionUser(): Promise<SessionUser | null> {
     // in verify-code/route.ts) — candidates apply anonymously via a localStorage
     // id, so the link to a logged-in session only exists via matching email.
     if (!candidateId && !userData.employer_id) {
+      const normalizedEmail = userData.email.toLowerCase().trim();
       const candSnapshot = await candidates()
-        .where("email", "==", userData.email)
+        .where("email", "==", normalizedEmail)
         .limit(1)
         .get();
       if (!candSnapshot.empty) {
         candidateId = candSnapshot.docs[0].id;
-        users().doc(session.user_id).update({ candidate_id: candidateId }).catch(() => {});
+        await users().doc(session.user_id).update({ candidate_id: candidateId });
+        console.log(`[AUTO-LINK] email=${userData.email} → candidate_id=${candidateId}`);
+      } else {
+        console.log(`[AUTO-LINK-MISS] No candidate found for email=${userData.email}`);
       }
     }
 

@@ -333,9 +333,19 @@ export default function JobDetailPage() {
           </div>
         </div>
 
-        {showApply && !applied && (
-          <div className="mt-12 max-w-xl mx-auto">
-            <JobApplyForm jobId={job.id} jobTitle={job.title} locale={lang} onSuccess={() => { setApplied(true); setShowApply(false); }} />
+{showApply && !applied && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-gray-900 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-700">
+              <div className="sticky top-0 bg-gray-900 border-b border-gray-700 px-6 py-4 flex items-center justify-between">
+                <h2 className="text-xl font-bold text-white">{lang === "es" ? "Postularme" : "Apply"}</h2>
+                <button onClick={() => setShowApply(false)} className="text-gray-400 hover:text-white text-2xl leading-none">
+                  ✕
+                </button>
+              </div>
+              <div className="p-6">
+                <JobApplyForm jobId={job.id} jobTitle={job.title} locale={lang} onSuccess={() => { setApplied(true); setShowApply(false); }} />
+              </div>
+            </div>
           </div>
         )}
       </section>
