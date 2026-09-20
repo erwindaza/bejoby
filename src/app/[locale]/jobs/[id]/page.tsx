@@ -26,6 +26,7 @@ interface Job {
   requirements_mandatory?: string[];
   requirements_nice_to_have?: string[];
   responsibilities?: string[];
+  soft_skills?: string[];
   what_we_offer?: string[];
 }
 
@@ -250,6 +251,19 @@ export default function JobDetailPage() {
                 <ul className="space-y-2">
                   {job.requirements_nice_to_have.map((item, i) => (
                     <li key={i} className="flex gap-2 text-gray-400"><span className="text-yellow-400 mt-0.5">○</span>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {job.soft_skills && job.soft_skills.length > 0 && (
+              <div className="mt-8">
+                <h2 className="text-xl font-bold text-white mb-4">{lang === "es" ? "Habilidades interpersonales" : "Soft Skills"}</h2>
+                <ul className="grid gap-2 sm:grid-cols-2">
+                  {job.soft_skills.map((item) => (
+                    <li key={item} className="flex gap-2 text-gray-300">
+                      <span className="text-blue-400" aria-hidden="true">✓</span>{item}
+                    </li>
                   ))}
                 </ul>
               </div>

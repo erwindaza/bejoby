@@ -24,6 +24,7 @@ export interface Job {
   requirements_mandatory?: string[];
   requirements_nice_to_have?: string[];
   responsibilities?: string[];
+  soft_skills?: string[];
   what_we_offer?: string[];
   search_tags?: string[];
   created_at: Date;

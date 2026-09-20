@@ -33,7 +33,7 @@ export async function GET(req: Request) {
       return error("No autorizado", 403);
     }
 
-    const isCandidateOwner = application.candidate_email === user.email;
+    const isCandidateOwner = Boolean(user.candidate_id) && application.candidate_id === user.candidate_id;
     let isEmployerOwner = false;
 
     if (user.employer_id && application.job_id) {
