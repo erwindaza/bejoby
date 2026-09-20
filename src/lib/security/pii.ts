@@ -27,6 +27,7 @@ export interface ApplicationPIIInput {
   candidate_email: string;
   resume_url?: string;
   message?: string;
+  expected_monthly_rate?: string;
 }
 
 function sanitizeText(value: string, maxLength: number): string {
@@ -166,6 +167,7 @@ export function encryptApplicationPII(input: ApplicationPIIInput) {
       candidate_email: encryptString(sanitizeText(input.candidate_email, 320).toLowerCase()),
       resume_url: encryptString(sanitizeText(input.resume_url || "", 2000)),
       message: encryptString(sanitizeText(input.message || "", 2000)),
+      expected_monthly_rate: encryptString(sanitizeText(input.expected_monthly_rate || "", 100)),
     },
   };
 }
@@ -178,6 +180,7 @@ export function decryptApplicationPII(data: Record<string, unknown>) {
     candidate_email: decryptString(pii.candidate_email ?? data.candidate_email),
     resume_url: decryptString(pii.resume_url ?? data.resume_url),
     message: decryptString(pii.message ?? data.message),
+    expected_monthly_rate: decryptString(pii.expected_monthly_rate ?? data.expected_monthly_rate),
   };
 }
 
@@ -215,6 +218,7 @@ export function buildEmployerSafeApplicationView(id: string, data: Record<string
     candidate_name: safeName,
     candidate_email_masked: maskEmail(String(hydrated.candidate_email || "")),
     message: hydrated.message || "",
+    expected_monthly_rate: hydrated.expected_monthly_rate || "",
     status: hydrated.status || "pending",
     cv_path: hydrated.cv_path || "",
     cv_filename: hydrated.cv_filename || "",

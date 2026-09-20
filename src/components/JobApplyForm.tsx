@@ -17,6 +17,7 @@ export default function JobApplyForm({ jobId, jobTitle, locale = "es", onSuccess
     email: "",
     message: "",
     linkedin: "",
+    expected_monthly_rate: "",
     consent_share_data: false,
     consent_privacy: false,
     consent_data_processing: false,
@@ -26,12 +27,15 @@ export default function JobApplyForm({ jobId, jobTitle, locale = "es", onSuccess
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
+  const [pendingUpload, setPendingUpload] = useState<{ applicationId: string; token: string } | null>(null);
 
   const t = locale === "es" ? {
     title: `Postular a: ${jobTitle}`,
     name: "Nombre completo",
     email: "Email",
     linkedin: "LinkedIn (opcional)",
+    expectedRate: "Tarifa mensual esperada",
+    expectedRatePlaceholder: "Ej: USD 5,000",
     cv: "CV (PDF o DOCX)",
     cvHint: "Máximo 5 MB",
     cvSelected: "Archivo seleccionado:",
@@ -50,11 +54,15 @@ export default function JobApplyForm({ jobId, jobTitle, locale = "es", onSuccess
     privacyLink: "Política de Privacidad",
     requiredConsents: "Debes aceptar todos los consentimientos para postular",
     invalidFile: "Solo se aceptan archivos PDF o DOCX (máximo 5 MB)",
+    cvRequired: "Debes adjuntar tu CV",
+    uploadFailed: "No pudimos guardar el CV. Intenta nuevamente.",
   } : {
     title: `Apply to: ${jobTitle}`,
     name: "Full name",
     email: "Email",
     linkedin: "LinkedIn (optional)",
+    expectedRate: "Expected monthly rate",
+    expectedRatePlaceholder: "e.g. USD 5,000",
     cv: "Resume (PDF or DOCX)",
     cvHint: "Max 5 MB",
     cvSelected: "File selected:",
@@ -73,6 +81,8 @@ export default function JobApplyForm({ jobId, jobTitle, locale = "es", onSuccess
     privacyLink: "Privacy Policy",
     requiredConsents: "You must accept all consents to apply",
     invalidFile: "Only PDF and DOCX files accepted (max 5 MB)",
+    cvRequired: "Please attach your resume",
+    uploadFailed: "We could not save your resume. Please try again.",
   };
 
   const ALLOWED_TYPES = [
@@ -102,6 +112,10 @@ export default function JobApplyForm({ jobId, jobTitle, locale = "es", onSuccess
     e.preventDefault();
     if (!form.consent_share_data || !form.consent_privacy || !form.consent_data_processing) {
       setErrorMsg(t.requiredConsents);
+      return;
+    }
+    if (!cvFile) {
+      setErrorMsg(t.cvRequired);
       return;
     }
     setStatus("loading");
@@ -138,56 +152,57 @@ export default function JobApplyForm({ jobId, jobTitle, locale = "es", onSuccess
         }
       }
 
-      // Submit application first to get the ID
-      const appRes = await fetch("/api/applications", {
+      let upload = pendingUpload;
+      if (!upload) {
+        const appRes = await fetch("/api/applications", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            job_id: jobId,
+            candidate_id: candidateId,
+            candidate_name: form.name,
+            candidate_email: form.email,
+            resume_url: form.linkedin || "",
+            expected_monthly_rate: form.expected_monthly_rate,
+            message: form.message,
+            consent_share_data: true,
+          }),
+        });
+        const appData = await appRes.json();
+        if (!appData.ok) {
+          setErrorMsg(appData.error || "Error");
+          setStatus("error");
+          return;
+        }
+        upload = {
+          applicationId: appData.data.id,
+          token: appData.data.cv_upload_token,
+        };
+        setPendingUpload(upload);
+      }
+
+      // Upload CV if provided
+      setUploadProgress(t.uploadingCV);
+      const formData = new FormData();
+      formData.append("file", cvFile);
+      formData.append("application_id", upload.applicationId);
+      formData.append("upload_token", upload.token);
+
+      const uploadRes = await fetch("/api/cv/upload", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          job_id: jobId,
-          candidate_id: candidateId,
-          candidate_name: form.name,
-          candidate_email: form.email,
-          resume_url: form.linkedin || "",
-          message: form.message,
-          consent_share_data: true,
-        }),
+        body: formData,
       });
-      const appData = await appRes.json();
-      if (!appData.ok) {
-        setErrorMsg(appData.error || "Error");
+      const uploadData = await uploadRes.json();
+
+      if (!uploadData.ok) {
+        setUploadProgress("");
+        setErrorMsg(uploadData.error || t.uploadFailed);
         setStatus("error");
         return;
       }
 
-      const applicationId = appData.data.id;
-
-      // Upload CV if provided
-      if (cvFile) {
-        setUploadProgress(t.uploadingCV);
-        const formData = new FormData();
-        formData.append("file", cvFile);
-        formData.append("application_id", applicationId);
-
-        const uploadRes = await fetch("/api/cv/upload", {
-          method: "POST",
-          body: formData,
-        });
-        const uploadData = await uploadRes.json();
-
-        if (uploadData.ok) {
-          // Update application with CV path
-          await fetch(`/api/applications/${applicationId}`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              cv_path: uploadData.data.path,
-              cv_filename: cvFile.name,
-            }),
-          });
-        }
-        setUploadProgress("");
-      }
-
+      setPendingUpload(null);
+      setUploadProgress("");
       setStatus("success");
       onSuccess?.();
     } catch {
@@ -245,10 +260,23 @@ export default function JobApplyForm({ jobId, jobTitle, locale = "es", onSuccess
         />
       </div>
 
+      <div>
+        <label className="block text-sm font-medium text-gray-300 mb-1">{t.expectedRate} *</label>
+        <input
+          name="expected_monthly_rate"
+          value={form.expected_monthly_rate}
+          onChange={handleChange}
+          required
+          maxLength={100}
+          className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+          placeholder={t.expectedRatePlaceholder}
+        />
+      </div>
+
       {/* CV Upload */}
       <div>
         <label className="block text-sm font-medium text-gray-300 mb-1">
-          {t.cv}
+          {t.cv} *
           <span className="text-gray-500 font-normal ml-2">({t.cvHint})</span>
         </label>
         {!cvFile ? (
@@ -285,6 +313,7 @@ export default function JobApplyForm({ jobId, jobTitle, locale = "es", onSuccess
           type="file"
           accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
           onChange={handleFileChange}
+          required={!cvFile}
           className="hidden"
         />
       </div>
