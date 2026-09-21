@@ -39,6 +39,7 @@ npm run dev
 - `src/app/page.tsx`: landing principal.
 - `src/components/BejobyLanding.tsx`: UI del portal, recorrido IA y flujo de CV.
 - `src/app/globals.css`: tokens visuales, fuentes y estilos base.
+- `cv-data-pipeline-sdd.md`: especificación SDD del pipeline de CVs `raw -> silver` con diagramas Mermaid.
 
 ## 🔧 Próximos pasos sugeridos
 

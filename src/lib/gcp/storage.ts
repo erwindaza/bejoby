@@ -47,7 +47,7 @@ function getStorage(): Storage {
 
 /**
  * Upload a CV file to GCS. Returns the GCS path (not a public URL).
- * Files are stored as: cvs/{applicationId}/{filename}
+ * Files are stored in the raw data zone as: raw/cvs/{applicationId}/{filename}
  */
 export async function uploadCV(
   fileBuffer: Buffer,
@@ -71,7 +71,7 @@ export async function uploadCV(
 
   // Sanitize filename
   const safeName = fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
-  const path = `cvs/${applicationId}/${safeName}`;
+  const path = `raw/cvs/${applicationId}/${safeName}`;
 
   const storage = getStorage();
   const bucket = storage.bucket(CV_BUCKET);
