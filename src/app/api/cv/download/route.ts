@@ -4,7 +4,7 @@ import { getSessionUser } from "@/lib/auth";
 import { applications, jobs } from "@/lib/gcp/collections";
 import { success, error, serverError } from "@/lib/utils/api-response";
 
-// GET /api/cv/download?path=cvs/xxx/file.pdf
+// GET /api/cv/download?path=raw/cvs/xxx/file.pdf
 export async function GET(req: Request) {
   try {
     // Only authenticated users can download CVs
@@ -14,11 +14,14 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const path = searchParams.get("path");
 
-    if (!path || !path.startsWith("cvs/")) {
+    const isRawCvPath = path?.startsWith("raw/cvs/");
+    const isLegacyCvPath = path?.startsWith("cvs/");
+    if (!path || (!isRawCvPath && !isLegacyCvPath)) {
       return error("Ruta de archivo inválida");
     }
 
-    const [, applicationId] = path.split("/");
+    const parts = path.split("/");
+    const applicationId = isRawCvPath ? parts[2] : parts[1];
     if (!applicationId) {
       return error("Ruta de archivo inválida");
     }
