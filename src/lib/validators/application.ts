@@ -9,6 +9,7 @@ export const createApplicationSchema = z.object({
   resume_url: z.string().url("Invalid resume URL").or(z.literal("")).default(""),
   cv_path: z.string().max(500).default(""),
   cv_filename: z.string().max(300).default(""),
+  expected_monthly_rate: z.string().min(1, "Expected monthly rate is required").max(100),
   message: z.string().max(2000).default(""),
   consent_share_data: z.literal(true, { error: "You must consent to share your data with the employer" }),
 });

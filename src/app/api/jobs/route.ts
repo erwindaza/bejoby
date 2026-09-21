@@ -4,6 +4,7 @@ import { createJobSchema } from "@/lib/validators/job";
 import { success, created, error, serverError } from "@/lib/utils/api-response";
 import { FieldValue, Query } from "@google-cloud/firestore";
 import { notifyJobPosted } from "@/lib/email";
+import { getSessionUser } from "@/lib/auth";
 
 // GET /api/jobs — List jobs with optional filters
 export async function GET(req: Request) {
@@ -48,12 +49,16 @@ export async function GET(req: Request) {
 // POST /api/jobs — Create a new job
 export async function POST(req: Request) {
   try {
+    const user = await getSessionUser();
+    if (!user?.employer_id) return error("Unauthorized", 401);
+
     const body = await req.json().catch(() => null);
     const parsed = createJobSchema.safeParse(body);
 
     if (!parsed.success) {
       return error(parsed.error.issues.map((i) => i.message).join(", "));
     }
+    if (parsed.data.employer_id !== user.employer_id) return error("Forbidden", 403);
 
     const docRef = jobs().doc();
     await docRef.set({

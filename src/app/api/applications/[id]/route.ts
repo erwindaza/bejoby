@@ -3,10 +3,8 @@ import { applications, jobs, interactions } from "@/lib/gcp/collections";
 import { updateApplicationSchema } from "@/lib/validators/application";
 import { success, error, notFound, serverError } from "@/lib/utils/api-response";
 import { FieldValue } from "@google-cloud/firestore";
-import { analyzeApplication } from "@/lib/ai/match-analysis";
-import { sendAnalysisReport } from "@/lib/email";
 import { getSessionUser } from "@/lib/auth";
-import { buildEmployerSafeApplicationView, decryptApplicationPII } from "@/lib/security/pii";
+import { buildEmployerSafeApplicationView } from "@/lib/security/pii";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -127,63 +125,6 @@ export async function PUT(req: Request, { params }: Params) {
 }
 
 // PATCH /api/applications/:id — Partial update (e.g. attach CV info)
-export async function PATCH(req: Request, { params }: Params) {
-  try {
-    const { id } = await params;
-    const doc = await applications().doc(id).get();
-    if (!doc.exists) return notFound("Application");
-
-    const body = await req.json().catch(() => null);
-    if (!body) return error("Invalid request body");
-
-    // Only allow updating specific fields
-    const allowed: Record<string, unknown> = {};
-    if (typeof body.cv_path === "string") allowed.cv_path = body.cv_path;
-    if (typeof body.cv_filename === "string") allowed.cv_filename = body.cv_filename;
-
-    if (Object.keys(allowed).length === 0) {
-      return error("Nothing to update");
-    }
-
-    await applications().doc(id).update({
-      ...allowed,
-      updated_at: FieldValue.serverTimestamp(),
-    });
-
-    // Fire-and-forget: if CV was just attached, run AI analysis
-    if (allowed.cv_path) {
-      (async () => {
-        try {
-          const analysis = await analyzeApplication(id);
-          if (analysis) {
-            // Fetch updated application data for the email
-            const updatedDoc = await applications().doc(id).get();
-            const appData = updatedDoc.data();
-            if (appData) {
-              const decrypted = decryptApplicationPII(appData as Record<string, unknown>);
-              // Fetch job title
-              const jobDoc = await jobs().doc(appData.job_id).get();
-              const jobTitle = jobDoc.exists ? jobDoc.data()?.title || appData.job_id : appData.job_id;
-
-              await sendAnalysisReport({
-                candidate_name: String(decrypted.candidate_name || ""),
-                candidate_email: String(decrypted.candidate_email || ""),
-                job_title: jobTitle,
-                job_id: appData.job_id,
-                cv_filename: appData.cv_filename || "",
-                analysis,
-              });
-            }
-          }
-        } catch (err) {
-          console.error("[PATCH] AI analysis fire-and-forget error:", err);
-        }
-      })();
-    }
-
-    return success({ id, ...allowed });
-  } catch (err) {
-    console.error("[PATCH /api/applications/:id]", err);
-    return serverError();
-  }
+export async function PATCH() {
+  return error("CV metadata can only be updated by the secure upload endpoint", 405);
 }

@@ -20,6 +20,7 @@ export const createJobSchema = z.object({
   requirements_mandatory: z.array(z.string()).optional(),
   requirements_nice_to_have: z.array(z.string()).optional(),
   responsibilities: z.array(z.string()).optional(),
+  soft_skills: z.array(z.string()).optional(),
   what_we_offer: z.array(z.string()).optional(),
   search_tags: z.array(z.string().max(50)).max(100).optional(),
 });
@@ -43,6 +44,7 @@ export const updateJobSchema = z.object({
   requirements_mandatory: z.array(z.string()).optional(),
   requirements_nice_to_have: z.array(z.string()).optional(),
   responsibilities: z.array(z.string()).optional(),
+  soft_skills: z.array(z.string()).optional(),
   what_we_offer: z.array(z.string()).optional(),
   search_tags: z.array(z.string().max(50)).max(100).optional(),
 });

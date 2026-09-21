@@ -6,6 +6,7 @@ import { FieldValue } from "@google-cloud/firestore";
 import { notifyApplicationReceived } from "@/lib/email";
 import { getSessionUser } from "@/lib/auth";
 import { buildEmployerSafeApplicationView, decryptCandidatePII, encryptApplicationPII } from "@/lib/security/pii";
+import { createUploadToken } from "@/lib/security/upload-token";
 
 // GET /api/applications — List applications (candidate-only view)
 // NOTE: Employer view moved to GET /api/employer/job-postings/[id]/applications
@@ -144,6 +145,7 @@ export async function POST(req: Request) {
     if (!existing.empty) return error("Already applied to this job", 409);
 
     const docRef = applications().doc();
+    const uploadToken = createUploadToken();
     await docRef.set({
       job_id: parsed.data.job_id,
       candidate_id: parsed.data.candidate_id,
@@ -155,7 +157,10 @@ export async function POST(req: Request) {
         candidate_email: parsed.data.candidate_email,
         resume_url: parsed.data.resume_url,
         message: parsed.data.message,
+        expected_monthly_rate: parsed.data.expected_monthly_rate,
       }),
+      cv_upload_token_hash: uploadToken.hash,
+      cv_upload_token_expires_at: uploadToken.expiresAt,
       status: "pending",
       created_at: FieldValue.serverTimestamp(),
       updated_at: FieldValue.serverTimestamp(),
@@ -179,6 +184,8 @@ export async function POST(req: Request) {
       candidate_id: parsed.data.candidate_id,
       status: "pending",
       application_pii_encrypted: true,
+      cv_upload_token: uploadToken.token,
+      cv_upload_token_expires_at: uploadToken.expiresAt.toISOString(),
     });
   } catch (err) {
     console.error("[POST /api/applications]", err);

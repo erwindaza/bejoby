@@ -9,6 +9,7 @@ export interface Application {
   candidate_email: string;
   resume_url: string;
   message: string;
+  expected_monthly_rate: string;
   status: ApplicationStatus;
   consent_share_data: boolean;
   created_at: Date;
