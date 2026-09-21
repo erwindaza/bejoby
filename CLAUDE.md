@@ -28,6 +28,12 @@
 - **spec.md** → Historias, criterios de éxito, restricciones, preguntas de clarificación
 - **plan.md** → Decisiones técnicas (Firestore schema, API routes, componentes React)
 - **tasks.md** → Desglose en 25 tareas con dependencias (6 sprints)
+- **cv-data-pipeline-sdd.md** → Pipeline CV raw-to-silver, seguridad GCS y diagramas Mermaid
+
+### Convencion Permanente De Especificaciones
+- Toda nueva iniciativa debe documentarse con metodología SDD antes o junto con la implementación.
+- Toda especificación SDD debe incluir diagramas Mermaid del flujo principal, modelo de datos y límites de confianza cuando aplique.
+- Los archivos originales de postulantes se consideran capa `raw`; los datos parseados o normalizados deben modelarse como capa `silver`.
 
 ### Estimación
 - **Total:** ~14-18 días
