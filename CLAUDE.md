@@ -29,6 +29,7 @@
 - **plan.md** → Decisiones técnicas (Firestore schema, API routes, componentes React)
 - **tasks.md** → Desglose en 25 tareas con dependencias (6 sprints)
 - **cv-data-pipeline-sdd.md** → Pipeline CV raw-silver-golden, seguridad GCS, analitica/IA y diagramas Mermaid
+- **data-model-raw-silver-golden.md** → Modelo de datos raw/silver/golden, dbt, Databricks y gobernanza/linaje
 
 ### Convencion Permanente De Especificaciones
 - Toda nueva iniciativa debe documentarse con metodología SDD antes o junto con la implementación.
