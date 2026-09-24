@@ -41,6 +41,7 @@ npm run dev
 - `src/app/globals.css`: tokens visuales, fuentes y estilos base.
 - `cv-data-pipeline-sdd.md`: especificación SDD del pipeline de CVs `raw -> silver -> golden` con diagramas Mermaid.
 - `data-model-raw-silver-golden.md`: modelo de datos por capa, incluyendo dbt, Databricks y gobernanza/linaje.
+- `bejoby-conversational-agent-sdd.md`: SPEC 01 del agente conversacional para WhatsApp/webchat, MCP, RAG, handoff y Lenovo GPU.
 
 ## 🔧 Próximos pasos sugeridos
 
