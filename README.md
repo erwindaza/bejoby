@@ -43,6 +43,8 @@ npm run dev
 - `data-model-raw-silver-golden.md`: modelo de datos por capa, incluyendo dbt, Databricks y gobernanza/linaje.
 - `bejoby-conversational-agent-sdd.md`: SPEC 01 del agente conversacional para WhatsApp/webchat, MCP, RAG, handoff y Lenovo GPU.
 - `secrets-and-kms-sdd.md`: especificación para secretos, credenciales GCP, Secret Manager y Cloud KMS/CMEK.
+- `platform-agent-fabric-sdd.md`: SPEC 00 de plataforma Agent Fabric local-first, LLM Gateway, trazabilidad y fallback cloud.
+- `agent02-thinkpad-worker-sdd.md`: SPEC 05 del nodo ThinkPad worker/challenger asincrónico.
 
 ## 🔧 Próximos pasos sugeridos
 

@@ -32,6 +32,8 @@
 - **data-model-raw-silver-golden.md** → Modelo de datos raw/silver/golden, dbt, Databricks y gobernanza/linaje
 - **bejoby-conversational-agent-sdd.md** → SPEC 01 del agente conversacional WhatsApp/webchat, MCP, RAG, handoff y Lenovo GPU
 - **secrets-and-kms-sdd.md** → Manejo de secretos, credenciales GCP, Secret Manager y Cloud KMS/CMEK
+- **platform-agent-fabric-sdd.md** → SPEC 00 de plataforma Agent Fabric local-first, LLM Gateway, trazabilidad y fallback cloud
+- **agent02-thinkpad-worker-sdd.md** → SPEC 05 del nodo ThinkPad worker/challenger asincrono
 
 ### Convencion Permanente De Especificaciones
 - Toda nueva iniciativa debe documentarse con metodología SDD antes o junto con la implementación.
