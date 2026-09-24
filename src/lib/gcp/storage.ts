@@ -1,6 +1,6 @@
 // src/lib/gcp/storage.ts — GCS client for CV file uploads
 import { Storage } from "@google-cloud/storage";
-import { parseServiceAccountKey } from "./firestore";
+import { getGcpClientAuthOptions } from "./firestore";
 
 const CV_BUCKET = process.env.GCS_CV_BUCKET || "bejoby-cvs";
 const CV_KMS_KEY_NAME = process.env.GCS_CV_KMS_KEY_NAME;
@@ -24,23 +24,7 @@ let storageInstance: Storage | null = null;
 function getStorage(): Storage {
   if (storageInstance) return storageInstance;
 
-  const projectId = process.env.GCP_PROJECT_ID;
-  const keyRaw = process.env.GCP_SERVICE_ACCOUNT_KEY;
-
-  if (!projectId || !keyRaw) {
-    throw new Error("Missing GCP credentials for Storage");
-  }
-
-  const credentials = parseServiceAccountKey(keyRaw);
-  const privateKey = (credentials.private_key || "").replace(/\\n/g, "\n");
-
-  storageInstance = new Storage({
-    projectId,
-    credentials: {
-      client_email: credentials.client_email,
-      private_key: privateKey,
-    },
-  });
+  storageInstance = new Storage(getGcpClientAuthOptions());
 
   return storageInstance;
 }

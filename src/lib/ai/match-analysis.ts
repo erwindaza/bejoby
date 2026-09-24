@@ -1,6 +1,6 @@
 // src/lib/ai/match-analysis.ts — AI-powered candidate-job fit analysis using Gemini
 import { Storage } from "@google-cloud/storage";
-import { parseServiceAccountKey } from "@/lib/gcp/firestore";
+import { getGcpClientAuthOptions } from "@/lib/gcp/firestore";
 import { applications, jobs } from "@/lib/gcp/collections";
 import { anonymizeForLLM } from "@/lib/ai/anonymize";
 import { FieldValue } from "@google-cloud/firestore";
@@ -27,17 +27,7 @@ export interface MatchAnalysis {
  * Extract text from a CV file stored in GCS.
  */
 async function extractCVText(cvPath: string): Promise<string> {
-  const projectId = process.env.GCP_PROJECT_ID;
-  const keyRaw = process.env.GCP_SERVICE_ACCOUNT_KEY;
-  if (!projectId || !keyRaw) throw new Error("Missing GCP credentials");
-
-  const credentials = parseServiceAccountKey(keyRaw);
-  const privateKey = (credentials.private_key || "").replace(/\\n/g, "\n");
-
-  const storage = new Storage({
-    projectId,
-    credentials: { client_email: credentials.client_email, private_key: privateKey },
-  });
+  const storage = new Storage(getGcpClientAuthOptions());
 
   const [buffer] = await storage.bucket(CV_BUCKET).file(cvPath).download();
 

@@ -14,12 +14,16 @@ export async function GET() {
     NODE_ENV: process.env.NODE_ENV,
   };
 
-  // Validate key structure (booleans only, no content)
+  // Validate key structure (booleans only, no content). If no key is present,
+  // the SDK can still authenticate via Application Default Credentials.
   let keyValid = false;
+  const usesAdc = !process.env.GCP_SERVICE_ACCOUNT_KEY;
   try {
     const { parseServiceAccountKey } = await import("@/lib/gcp/firestore");
-    const parsed = parseServiceAccountKey(process.env.GCP_SERVICE_ACCOUNT_KEY || "");
-    keyValid = !!(parsed.client_email && parsed.private_key);
+    if (process.env.GCP_SERVICE_ACCOUNT_KEY) {
+      const parsed = parseServiceAccountKey(process.env.GCP_SERVICE_ACCOUNT_KEY);
+      keyValid = !!(parsed.client_email && parsed.private_key);
+    }
   } catch {
     keyValid = false;
   }
@@ -27,7 +31,7 @@ export async function GET() {
   // Test Firestore connectivity
   let dbStatus: "ok" | "error" | "skipped" = "skipped";
   let dbError = "";
-  if (keyValid) {
+  if (keyValid || usesAdc) {
     try {
       const { getFirestore } = await import("@/lib/gcp/firestore");
       const db = getFirestore();
@@ -49,6 +53,7 @@ export async function GET() {
     status: "ok",
     env,
     serviceAccountKeyValid: keyValid,
+    usesApplicationDefaultCredentials: usesAdc,
     firestore: { status: dbStatus, ...(dbError && { code: dbError }) },
     email: { configured: smtpConfigured },
     timestamp: new Date().toISOString(),

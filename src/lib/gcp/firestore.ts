@@ -4,6 +4,14 @@ import { Firestore } from "@google-cloud/firestore";
 
 let firestoreInstance: Firestore | null = null;
 
+export interface GcpClientAuthOptions {
+  projectId: string;
+  credentials?: {
+    client_email: string;
+    private_key: string;
+  };
+}
+
 /**
  * Parses the service account key from env var.
  * Supports both plain JSON and Base64-encoded JSON (recommended for Vercel).
@@ -38,36 +46,46 @@ export function parseServiceAccountKey(raw: string): Record<string, string> {
 }
 
 /**
+ * Shared GCP client auth options.
+ *
+ * Preferred production setup:
+ * - Use Application Default Credentials / workload identity from the runtime.
+ * - Keep service-account JSON only as a local/Vercel fallback secret.
+ */
+export function getGcpClientAuthOptions(): GcpClientAuthOptions {
+  const projectId = process.env.GCP_PROJECT_ID;
+  if (!projectId) {
+    throw new Error("Missing GCP_PROJECT_ID environment variable");
+  }
+
+  const keyRaw = process.env.GCP_SERVICE_ACCOUNT_KEY;
+  if (!keyRaw) {
+    return { projectId };
+  }
+
+  const credentials = parseServiceAccountKey(keyRaw);
+  const privateKey = (credentials.private_key || "").replace(/\\n/g, "\n");
+
+  return {
+    projectId,
+    credentials: {
+      client_email: credentials.client_email,
+      private_key: privateKey,
+    },
+  };
+}
+
+/**
  * Returns a singleton Firestore client configured from environment variables.
  * All credentials come from env vars (Vercel / .env.local), never hardcoded.
  */
 export function getFirestore(): Firestore {
   if (firestoreInstance) return firestoreInstance;
 
-  const projectId = process.env.GCP_PROJECT_ID;
-  const keyRaw = process.env.GCP_SERVICE_ACCOUNT_KEY;
-
-  if (!projectId) {
-    throw new Error("Missing GCP_PROJECT_ID environment variable");
-  }
-
-  if (!keyRaw) {
-    throw new Error("Missing GCP_SERVICE_ACCOUNT_KEY environment variable");
-  }
-
-  const credentials = parseServiceAccountKey(keyRaw);
-
-  // Normalize private_key newlines (Vercel may store literal \\n)
-  const privateKey = (credentials.private_key || "").replace(/\\n/g, "\n");
-
   // Only pass databaseId if it's not the default
   const databaseId = process.env.FIRESTORE_DATABASE_ID;
   const firestoreOpts: ConstructorParameters<typeof Firestore>[0] = {
-    projectId,
-    credentials: {
-      client_email: credentials.client_email,
-      private_key: privateKey,
-    },
+    ...getGcpClientAuthOptions(),
   };
 
   if (databaseId && databaseId !== "(default)") {

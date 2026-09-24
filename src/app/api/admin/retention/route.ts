@@ -3,7 +3,7 @@
 import { applications, sessions, otps, dataRequests, users, candidates } from "@/lib/gcp/collections";
 import { success, error, serverError } from "@/lib/utils/api-response";
 import { Storage } from "@google-cloud/storage";
-import { parseServiceAccountKey } from "@/lib/gcp/firestore";
+import { getGcpClientAuthOptions } from "@/lib/gcp/firestore";
 import { hashForLookup } from "@/lib/security/pii";
 
 const ADMIN_SECRET = process.env.ADMIN_SECRET || "";
@@ -121,15 +121,5 @@ export async function POST(req: Request) {
 }
 
 function getStorage(): Storage {
-  const projectId = process.env.GCP_PROJECT_ID;
-  const keyRaw = process.env.GCP_SERVICE_ACCOUNT_KEY;
-  if (!projectId || !keyRaw) throw new Error("Missing GCP credentials");
-
-  const credentials = parseServiceAccountKey(keyRaw);
-  const privateKey = (credentials.private_key || "").replace(/\\n/g, "\n");
-
-  return new Storage({
-    projectId,
-    credentials: { client_email: credentials.client_email, private_key: privateKey },
-  });
+  return new Storage(getGcpClientAuthOptions());
 }
