@@ -43,6 +43,11 @@ scripts/*
 seeds/
 data/
 docs/
+!docs/
+docs/*
+!docs/infrastructure/
+!docs/infrastructure/
+!docs/infrastructure/**/*.md
 *.seed.json
 *-pipeline.json
 *-data-access.json

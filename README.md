@@ -45,6 +45,7 @@ npm run dev
 - `secrets-and-kms-sdd.md`: especificación para secretos, credenciales GCP, Secret Manager y Cloud KMS/CMEK.
 - `platform-agent-fabric-sdd.md`: SPEC 00 de plataforma Agent Fabric local-first, LLM Gateway, trazabilidad y fallback cloud.
 - `agent02-thinkpad-worker-sdd.md`: SPEC 05 del nodo ThinkPad worker/challenger asincrónico.
+- `docs/infrastructure/`: runbooks y documentación operativa de infraestructura local-first.
 
 ## 🔧 Próximos pasos sugeridos
 

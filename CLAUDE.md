@@ -34,6 +34,7 @@
 - **secrets-and-kms-sdd.md** → Manejo de secretos, credenciales GCP, Secret Manager y Cloud KMS/CMEK
 - **platform-agent-fabric-sdd.md** → SPEC 00 de plataforma Agent Fabric local-first, LLM Gateway, trazabilidad y fallback cloud
 - **agent02-thinkpad-worker-sdd.md** → SPEC 05 del nodo ThinkPad worker/challenger asincrono
+- **docs/infrastructure/** → Runbooks operativos de agent01/dev01 e infraestructura local-first
 
 ### Convencion Permanente De Especificaciones
 - Toda nueva iniciativa debe documentarse con metodología SDD antes o junto con la implementación.
