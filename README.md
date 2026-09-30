@@ -53,3 +53,19 @@ npm run dev
 - Conectar autenticación real y storage de CV.
 - Integrar servicios IA reales para parsing y matching.
 - Añadir analítica de funnel y tracking de conversión.
+
+## 🤖 Agent Fabric PoC
+
+La base reusable de agentes vive en `src/lib/agent-fabric/`.
+
+Endpoints locales iniciales:
+
+```bash
+curl -s http://localhost:3000/api/agent/messages \
+  -H "Content-Type: application/json" \
+  -d '{"tenant_id":"bejoby","role":"candidate","channel":"webchat","text":"busco trabajo cloud data"}'
+
+curl -s http://localhost:3000/api/admin/reports/daily \
+  -H "Content-Type: application/json" \
+  -d '{"tenant_id":"bejoby","dry_run":true}'
+```

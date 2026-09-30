@@ -339,3 +339,51 @@ flowchart TD
 6. Chat IA con cupos limitados.
 7. Panel admin basico.
 8. Exportabilidad a GCP.
+
+---
+
+## 15. Agent Fabric PoC Inicial
+
+La primera implementacion reusable vive en:
+
+```text
+src/lib/agent-fabric/
+```
+
+Estructura:
+
+```text
+core/        clases base, policy validator, tools, skills, orchestrator
+agents/      agent-bejoby, agent-aif369, agent-reporting
+skills/      skills reutilizables por dominio y shared
+tools/       tools tipadas tipo MCP
+jobs/        jobs asincronos o programables, como daily reporting
+```
+
+Endpoints PoC:
+
+```text
+POST /api/agent/messages
+POST /api/admin/reports/daily
+```
+
+Ejemplo local:
+
+```bash
+curl -s http://localhost:3000/api/agent/messages \
+  -H "Content-Type: application/json" \
+  -d '{"tenant_id":"bejoby","role":"candidate","channel":"webchat","text":"busco trabajo cloud data"}'
+```
+
+Reporte diario en modo dry-run:
+
+```bash
+curl -s http://localhost:3000/api/admin/reports/daily \
+  -H "Content-Type: application/json" \
+  -d '{"tenant_id":"bejoby","dry_run":true}'
+```
+
+Regla actual:
+- La reportería no envia mensajes reales por defecto.
+- `dry_run=true` es el comportamiento seguro.
+- Para envios reales se requiere scope futuro `reports:send` y adaptador de canal aprobado.
