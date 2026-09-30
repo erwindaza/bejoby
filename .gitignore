@@ -45,6 +45,7 @@ data/
 docs/
 !docs/
 docs/*
+!docs/SPEC-001-bejoby-local-poc-gcp.md
 !docs/infrastructure/
 !docs/infrastructure/
 !docs/infrastructure/**/*.md

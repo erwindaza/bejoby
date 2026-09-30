@@ -25,6 +25,8 @@
 2. **HU-2 (Empleador):** Ver historial de publicaciones, postulaciones y transacciones
 
 ### Documentos SDD
+- **AGENTS.md** → Guía operativa para agentes: PoC local BeJoby exportable a GCP
+- **docs/SPEC-001-bejoby-local-poc-gcp.md** → Especificación de producto/arquitectura para la PoC social local
 - **spec.md** → Historias, criterios de éxito, restricciones, preguntas de clarificación
 - **plan.md** → Decisiones técnicas (Firestore schema, API routes, componentes React)
 - **tasks.md** → Desglose en 25 tareas con dependencias (6 sprints)

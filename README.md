@@ -46,6 +46,7 @@ npm run dev
 - `platform-agent-fabric-sdd.md`: SPEC 00 de plataforma Agent Fabric local-first, LLM Gateway, trazabilidad y fallback cloud.
 - `agent02-thinkpad-worker-sdd.md`: SPEC 05 del nodo ThinkPad worker/challenger asincrónico.
 - `docs/infrastructure/`: runbooks y documentación operativa de infraestructura local-first.
+- `docs/SPEC-001-bejoby-local-poc-gcp.md`: especificación de la PoC local BeJoby exportable a GCP.
 
 ## 🔧 Próximos pasos sugeridos
 
