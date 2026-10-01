@@ -22,6 +22,10 @@ function asDoc(obj: unknown): DocumentReference {
 function asCollection(obj: unknown): CollectionReference {
   return obj as CollectionReference;
 }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function firstCallArg(mock: ReturnType<typeof vi.fn>): any {
+  return mock.mock.calls[0]?.[0];
+}
 
 describe("recordConsent", () => {
   const setMock = vi.fn(async () => {});
@@ -59,7 +63,7 @@ describe("recordConsent", () => {
     expect(id).toBe("consent-123");
     expect(setMock).toHaveBeenCalled();
 
-    const payload = setMock.mock.calls[0][0];
+    const payload = firstCallArg(setMock);
     expect(payload.email).toBe("ana@example.com");
     expect(payload.consent_type).toBe("coach_usage");
     expect(payload.accepted).toBe(true);
@@ -75,7 +79,7 @@ describe("recordConsent", () => {
       policy_version: "1.0",
     });
 
-    const payload = setMock.mock.calls[0][0];
+    const payload = firstCallArg(setMock);
     expect(payload.consent_type).toBe("other");
     expect(payload.legal_basis).toBe("consent");
     expect(payload.source).toBe("web");

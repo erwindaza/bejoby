@@ -34,6 +34,10 @@ function asDoc(obj: unknown): DocumentReference {
 function asCollection(obj: unknown): CollectionReference {
   return obj as CollectionReference;
 }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function firstCallArg(mock: ReturnType<typeof vi.fn>): any {
+  return mock.mock.calls[0]?.[0];
+}
 function docSnap(exists: boolean, data?: Record<string, unknown>) {
   return { exists, data: () => data };
 }
@@ -201,7 +205,7 @@ describe("POST /api/jobs", () => {
     expect(setMock).toHaveBeenCalled();
     expect(notifyJobPosted).toHaveBeenCalled();
 
-    const payload = setMock.mock.calls[0][0];
+    const payload = firstCallArg(setMock);
     expect(payload.title).toBe("Senior Developer");
     expect(payload.employer_id).toBe("emp-1");
     expect(payload.status).toBe("pending_review");
@@ -237,7 +241,7 @@ describe("POST /api/jobs", () => {
     expect(res.status).toBe(201);
     expect(json.ok).toBe(true);
 
-    const payload = setMock.mock.calls[0][0];
+    const payload = firstCallArg(setMock);
     expect(payload.status).toBe("published");
   });
 

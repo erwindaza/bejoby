@@ -28,6 +28,10 @@ function asDoc(obj: unknown): DocumentReference {
 function asCollection(obj: unknown): CollectionReference {
   return obj as CollectionReference;
 }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function firstCallArg(mock: ReturnType<typeof vi.fn>): any {
+  return mock.mock.calls[0]?.[0];
+}
 function docSnap(exists: boolean, data?: Record<string, unknown>) {
   return { exists, data: () => data };
 }
@@ -202,7 +206,7 @@ describe("POST /api/employers", () => {
     expect(json.data.id).toBe("emp-123");
     expect(setMock).toHaveBeenCalled();
 
-    const payload = setMock.mock.calls[0][0];
+    const payload = firstCallArg(setMock);
     expect(payload.company_name).toBe("Acme Inc");
     expect(payload.email).toBe("employer@example.com");
     expect(payload.user_id).toBe("user-1");
@@ -224,7 +228,7 @@ describe("POST /api/employers", () => {
       })
     );
 
-    const payload = setMock.mock.calls[0][0];
+    const payload = firstCallArg(setMock);
     expect(payload.email).toBe("employer@example.com");
   });
 

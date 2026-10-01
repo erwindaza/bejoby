@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import type { NextRequest } from "next/server";
 import type { CollectionReference, DocumentReference } from "@google-cloud/firestore";
 
 vi.mock("@/lib/gcp/collections", () => ({
@@ -18,6 +19,9 @@ function asDoc(obj: unknown): DocumentReference {
 function asCollection(obj: unknown): CollectionReference {
   return obj as CollectionReference;
 }
+function asNextRequest(req: Request): NextRequest {
+  return req as unknown as NextRequest;
+}
 
 const envBackup = process.env.ADMIN_SECRET_TOKEN;
 
@@ -36,7 +40,7 @@ describe("GET /api/admin/employers", () => {
 
   it("returns 401 without token", async () => {
     const { GET } = await import("@/app/api/admin/employers/route");
-    const res = await GET(new Request("http://localhost/api/admin/employers"));
+    const res = await GET(asNextRequest(new Request("http://localhost/api/admin/employers")));
     const json = await res.json();
     expect(res.status).toBe(401);
     expect(json.ok).toBe(false);
@@ -45,9 +49,9 @@ describe("GET /api/admin/employers", () => {
   it("returns 401 with invalid token", async () => {
     const { GET } = await import("@/app/api/admin/employers/route");
     const res = await GET(
-      new Request("http://localhost/api/admin/employers", {
+      asNextRequest(new Request("http://localhost/api/admin/employers", {
         headers: { authorization: "Bearer wrong-token" },
-      })
+      }))
     );
     const json = await res.json();
     expect(res.status).toBe(401);
@@ -67,9 +71,9 @@ describe("GET /api/admin/employers", () => {
 
     const { GET } = await import("@/app/api/admin/employers/route");
     const res = await GET(
-      new Request("http://localhost/api/admin/employers", {
+      asNextRequest(new Request("http://localhost/api/admin/employers", {
         headers: { authorization: "Bearer admin-secret-123" },
-      })
+      }))
     );
     const json = await res.json();
     expect(res.status).toBe(200);
@@ -90,14 +94,14 @@ describe("POST /api/admin/employers", () => {
 
     const { POST } = await import("@/app/api/admin/employers/route");
     const res = await POST(
-      new Request("http://localhost/api/admin/employers", {
+      asNextRequest(new Request("http://localhost/api/admin/employers", {
         method: "POST",
         headers: {
           "content-type": "application/json",
           authorization: "Bearer admin-secret-123",
         },
         body: JSON.stringify({ id: "emp-1", verification_status: "verified" }),
-      })
+      }))
     );
     const json = await res.json();
     expect(res.status).toBe(200);
@@ -123,9 +127,9 @@ describe("GET /api/admin/jobs", () => {
 
     const { GET } = await import("@/app/api/admin/jobs/route");
     const res = await GET(
-      new Request("http://localhost/api/admin/jobs?status=pending_review", {
+      asNextRequest(new Request("http://localhost/api/admin/jobs?status=pending_review", {
         headers: { authorization: "Bearer admin-secret-123" },
-      })
+      }))
     );
     const json = await res.json();
     expect(res.status).toBe(200);
