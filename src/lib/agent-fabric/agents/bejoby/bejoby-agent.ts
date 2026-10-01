@@ -5,6 +5,7 @@ import { ConsentSkill } from "../../skills/bejoby/consent-skill";
 import { EmployerLeadSkill } from "../../skills/bejoby/employer-lead-skill";
 import { BeJobyIntentSkill } from "../../skills/bejoby/intent-skill";
 import { BeJobyJobsSearchSkill } from "../../skills/bejoby/jobs-search-skill";
+import { CoachSkill } from "../../skills/bejoby/coach-skill";
 import { FaqRagSkill } from "../../skills/shared/faq-rag-skill";
 import { ConversationSummarySkill } from "../../skills/shared/conversation-summary-skill";
 
@@ -17,6 +18,7 @@ export class BeJobyAgent extends BaseAgent {
     new ConsentSkill(),
     new BeJobyApplicationStatusSkill(),
     new BeJobyJobsSearchSkill(),
+    new CoachSkill(),
     new EmployerLeadSkill(),
     new FaqRagSkill(),
     new BeJobyIntentSkill(),

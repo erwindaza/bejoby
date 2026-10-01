@@ -1,7 +1,7 @@
 # BeJoby — Plan Técnico: Application & Publication History
 
 **Versión:** 0.1
-**Dependencia:** spec.md (aprobada)
+**Dependencia:** docs/planning/spec.md (aprobada)
 **Fecha:** 2026-09-04
 
 ---
@@ -254,7 +254,7 @@ Empleador ──POST /api/employer/applications/{appId}/make-offer──> API
 
 ## 📋 Tareas Desglosadas
 
-Ver **tasks.md** para lista completa con dependencias.
+Ver **docs/planning/tasks.md** para lista completa con dependencias.
 
 ---
 
@@ -265,4 +265,4 @@ Ver **tasks.md** para lista completa con dependencias.
 - [ ] Data privada: definir explícitamente qué campos no se devuelven en endpoints públicos
 - [ ] Confirmado: índices de Firestore creados (no hacerlo durante feature, bloqueante)
 
-**Próximo paso:** Aprobación → Redactar tasks.md con tareas concretas.
+**Próximo paso:** Aprobación → Redactar docs/planning/tasks.md con tareas concretas.

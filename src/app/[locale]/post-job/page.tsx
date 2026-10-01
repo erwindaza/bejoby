@@ -54,6 +54,10 @@ const t = {
     viewJobs: "Ver ofertas",
     // Errors
     connectionError: "Error de conexión. Intenta de nuevo.",
+    corporateEmailError: "Usa un email corporativo de tu empresa (ej: nombre@empresa.com). Emails personales no están permitidos para publicar ofertas.",
+    pendingReviewTitle: "¡Oferta recibida!",
+    pendingReviewSub: "Tu empresa está en revisión. La oferta será visible una vez que validemos los datos.",
+    pendingReviewNote: "Esto suele tomar menos de 24 horas. Te avisaremos por email.",
     // Auth required
     loginRequired: "Debes iniciar sesión para publicar ofertas",
     loginBtn: "Iniciar sesión",
@@ -100,6 +104,10 @@ const t = {
     postAnother: "Post another job",
     viewJobs: "View jobs",
     connectionError: "Connection error. Please try again.",
+    corporateEmailError: "Use your company email (e.g. name@company.com). Personal emails are not allowed to post jobs.",
+    pendingReviewTitle: "Job received!",
+    pendingReviewSub: "Your company is under review. The job will be visible once we validate your information.",
+    pendingReviewNote: "This usually takes less than 24 hours. We'll notify you by email.",
     loginRequired: "You must sign in to post jobs",
     loginBtn: "Sign in",
   },
@@ -138,7 +146,7 @@ export default function PostJobPage() {
 
   // Employer form
   const [emp, setEmp] = useState({
-    company_name: "", contact_name: "", email: "", phone: "",
+    company_name: "", contact_name: "", phone: "",
     website: "", industry: "", consent_privacy: false,
   });
 
@@ -147,6 +155,7 @@ export default function PostJobPage() {
     title: "", description: "", location: "", salary_range: "",
     employment_type: "full-time", work_mode: "on-site", language: lang, status: "published" as const,
   });
+  const [postedJobStatus, setPostedJobStatus] = useState<"published" | "pending_review" | null>(null);
 
   // Set step based on auth state
   useEffect(() => {
@@ -155,8 +164,6 @@ export default function PostJobPage() {
         setEmployerId(user.employer_id);
         setStep("post");
       } else {
-        // User logged in but no employer yet — pre-fill email
-        setEmp((prev) => ({ ...prev, email: user.email }));
         setStep("register");
       }
     }
@@ -191,12 +198,6 @@ export default function PostJobPage() {
       });
       const data = await res.json();
       if (data.ok) {
-        // Link employer to user account
-        await fetch("/api/auth/me", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ employer_id: data.data.id }),
-        });
         await refresh();
         setEmployerId(data.data.id);
         setStep("post");
@@ -206,7 +207,10 @@ export default function PostJobPage() {
           body: JSON.stringify({ type: "employer_registered", metadata: { id: data.data.id } }),
         }).catch(() => {});
       } else {
-        setErrorMsg(data.error || "Error");
+        const msg = data.error || "Error";
+        setErrorMsg(
+          /corporativo|corporate/i.test(msg) ? l.corporateEmailError : msg
+        );
       }
     } catch {
       setErrorMsg(l.connectionError);
@@ -228,6 +232,7 @@ export default function PostJobPage() {
       const data = await res.json();
       if (data.ok) {
         setStep("success");
+        setPostedJobStatus(data.data.status === "pending_review" ? "pending_review" : "published");
         setJob({ title: "", description: "", location: "", salary_range: "", employment_type: "full-time", work_mode: "on-site", language: lang, status: "published" });
         fetch("/api/events", {
           method: "POST",
@@ -295,26 +300,20 @@ export default function PostJobPage() {
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <label className="block text-sm text-slate-300 mb-1">{l.email}</label>
-                <input name="email" type="email" required value={emp.email} onChange={handleEmpChange} className={inputCls} />
-              </div>
-              <div>
                 <label className="block text-sm text-slate-300 mb-1">{l.phone}</label>
                 <input name="phone" value={emp.phone} onChange={handleEmpChange} className={inputCls} />
               </div>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <label className="block text-sm text-slate-300 mb-1">{l.website}</label>
                 <input name="website" value={emp.website} onChange={handleEmpChange} className={inputCls} />
               </div>
-              <div>
-                <label className="block text-sm text-slate-300 mb-1">{l.industry}</label>
-                <select name="industry" value={emp.industry} onChange={handleEmpChange} className={inputCls}>
-                  <option value="">{l.selectIndustry}</option>
-                  {INDUSTRIES.map((i) => <option key={i} value={i}>{i}</option>)}
-                </select>
-              </div>
+            </div>
+            <div>
+              <label className="block text-sm text-slate-300 mb-1">{l.industry}</label>
+              <select name="industry" value={emp.industry} onChange={handleEmpChange} className={inputCls}>
+                <option value="">{l.selectIndustry}</option>
+                {INDUSTRIES.map((i) => <option key={i} value={i}>{i}</option>)}
+              </select>
             </div>
             <ConsentCheckbox
               id="emp_consent"
@@ -388,22 +387,31 @@ export default function PostJobPage() {
         {/* Success */}
         {step === "success" && (
           <div className="text-center py-12">
-            <div className="text-5xl mb-4">🎉</div>
-            <h2 className="text-2xl font-bold text-white mb-3">{l.successTitle}</h2>
-            <p className="text-slate-400 mb-6">{l.successSub}</p>
-            <div className="flex gap-4 justify-center">
+            <div className="text-5xl mb-4">{postedJobStatus === "pending_review" ? "🕵️" : "🎉"}</div>
+            <h2 className="text-2xl font-bold text-white mb-3">
+              {postedJobStatus === "pending_review" ? l.pendingReviewTitle : l.successTitle}
+            </h2>
+            <p className="text-slate-400 mb-2">
+              {postedJobStatus === "pending_review" ? l.pendingReviewSub : l.successSub}
+            </p>
+            {postedJobStatus === "pending_review" && (
+              <p className="text-slate-500 text-sm mb-6">{l.pendingReviewNote}</p>
+            )}
+            <div className="flex gap-4 justify-center mt-6">
               <button
-                onClick={() => setStep("post")}
+                onClick={() => { setStep("post"); setPostedJobStatus(null); }}
                 className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium transition"
               >
                 {l.postAnother}
               </button>
-              <Link
-                href={`/${locale}/jobs`}
-                className="px-6 py-2.5 border border-slate-600 text-slate-300 hover:text-white rounded-lg font-medium transition"
-              >
-                {l.viewJobs}
-              </Link>
+              {postedJobStatus === "published" && (
+                <Link
+                  href={`/${locale}/jobs`}
+                  className="px-6 py-2.5 border border-slate-600 text-slate-300 hover:text-white rounded-lg font-medium transition"
+                >
+                  {l.viewJobs}
+                </Link>
+              )}
             </div>
           </div>
         )}

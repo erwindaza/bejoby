@@ -281,13 +281,15 @@ export default function EmpresasPage() {
                     </li>
                   ))}
                 </ul>
-                <button className={`w-full py-2 rounded-lg font-semibold transition ${
-                  plan.highlight
-                    ? "bg-blue-600 hover:bg-blue-500 text-white"
-                    : "border border-slate-600 text-white hover:border-slate-500"
-                }`}>
-                  {copy.hero_cta}
-                </button>
+                <Link href={`/${locale}/post-job`}>
+                  <button className={`w-full py-2 rounded-lg font-semibold transition ${
+                    plan.highlight
+                      ? "bg-blue-600 hover:bg-blue-500 text-white"
+                      : "border border-slate-600 text-white hover:border-slate-500"
+                  }`}>
+                    {copy.hero_cta}
+                  </button>
+                </Link>
               </div>
             ))}
           </div>

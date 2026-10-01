@@ -1,6 +1,15 @@
 import { getSessionUser } from "@/lib/auth";
 import { privacyRequests } from "@/lib/gcp/collections";
-import { createPrivacyRequest } from "@/lib/compliance/privacy-requests";
+import {
+  createPrivacyRequest,
+  completePrivacyRequest,
+} from "@/lib/compliance/privacy-requests";
+import {
+  exportUserData,
+  requestUserDeletion,
+  rectifyUserField,
+  blockProcessingForPurpose,
+} from "@/lib/compliance/arco-handler";
 import { createPrivacyRequestSchema } from "@/lib/validators/privacy-request";
 import { success, created, error, serverError } from "@/lib/utils/api-response";
 
@@ -32,14 +41,130 @@ export async function POST(req: Request) {
       return error(parsed.error.issues.map((issue) => issue.message).join(", "));
     }
 
+    const { request_type, target, description, requested_blocking, correction_payload } =
+      parsed.data;
+
+    // En el MVP, ACCESS/PORTABILITY/SUPPRESSION/RECTIFICATION/OPPOSITION/BLOCKING
+    // se ejecutan automáticamente sobre el usuario autenticado.
+    // Decisiones automatizadas se registran como solicitud para revisión humana.
+    if (["ACCESS", "PORTABILITY"].includes(request_type)) {
+      const exportPackage = await exportUserData(user.id);
+      const privacyRequest = await createPrivacyRequest({
+        user_id: user.id,
+        email: user.email,
+        request_type,
+        target,
+        description,
+        requested_blocking,
+        correction_payload,
+      });
+      await completePrivacyRequest(
+        privacyRequest.request_id,
+        `Datos exportados vía portal (export_id=${exportPackage.export_id}).`,
+      );
+      return created({
+        request_id: privacyRequest.request_id,
+        status: "COMPLETED",
+        export: exportPackage,
+      });
+    }
+
+    if (request_type === "SUPPRESSION") {
+      const deletionResult = await requestUserDeletion(user.id);
+      const privacyRequest = await createPrivacyRequest({
+        user_id: user.id,
+        email: user.email,
+        request_type,
+        target,
+        description,
+        requested_blocking,
+        correction_payload,
+      });
+
+      if (deletionResult.deleted) {
+        await completePrivacyRequest(
+          privacyRequest.request_id,
+          "Cuenta marcada para eliminación (soft-delete). Se eliminará físicamente tras período de gracia.",
+        );
+        return created({
+          request_id: privacyRequest.request_id,
+          status: "COMPLETED",
+          deletion: deletionResult,
+        });
+      }
+
+      await completePrivacyRequest(
+        privacyRequest.request_id,
+        `Solicitud rechazada: ${deletionResult.reasons.join(" ")}`,
+      );
+      return created({
+        request_id: privacyRequest.request_id,
+        status: "COMPLETED",
+        deletion: deletionResult,
+      });
+    }
+
+    if (request_type === "RECTIFICATION" && correction_payload) {
+      const field = correction_payload.field as string;
+      const newValue = correction_payload.new_value;
+      if (field && newValue !== undefined) {
+        await rectifyUserField(user.id, {
+          field,
+          new_value: newValue,
+          reason: description,
+        });
+      }
+      const privacyRequest = await createPrivacyRequest({
+        user_id: user.id,
+        email: user.email,
+        request_type,
+        target,
+        description,
+        requested_blocking,
+        correction_payload,
+      });
+      await completePrivacyRequest(
+        privacyRequest.request_id,
+        `Campo ${field} rectificado vía portal.`,
+      );
+      return created({
+        request_id: privacyRequest.request_id,
+        status: "COMPLETED",
+      });
+    }
+
+    if (["OPPOSITION", "BLOCKING"].includes(request_type)) {
+      const purposeCode = (target || "marketing_optional") as string;
+      await blockProcessingForPurpose(user.id, purposeCode, request_type);
+      const privacyRequest = await createPrivacyRequest({
+        user_id: user.id,
+        email: user.email,
+        request_type,
+        target,
+        description,
+        requested_blocking,
+        correction_payload,
+      });
+      await completePrivacyRequest(
+        privacyRequest.request_id,
+        `Bloqueo aplicado para finalidad ${purposeCode}.`,
+      );
+      return created({
+        request_id: privacyRequest.request_id,
+        status: "COMPLETED",
+      });
+    }
+
+    // Caso por defecto: registrar solicitud para revisión humana
+    // (AUTOMATED_DECISION_REVIEW, CONSENT_WITHDRAWAL, etc.).
     const privacyRequest = await createPrivacyRequest({
       user_id: user.id,
       email: user.email,
-      request_type: parsed.data.request_type,
-      target: parsed.data.target,
-      description: parsed.data.description,
-      requested_blocking: parsed.data.requested_blocking,
-      correction_payload: parsed.data.correction_payload,
+      request_type,
+      target,
+      description,
+      requested_blocking,
+      correction_payload,
     });
 
     return created(privacyRequest);

@@ -28,7 +28,7 @@ El objetivo es separar claramente:
 La especificacion inicial vive en:
 
 ```text
-cv-data-pipeline-sdd.md
+docs/sdds/cv-data-pipeline-sdd.md
 ```
 
 Este documento complementa esa spec con el modelo de base de datos completo por capa.

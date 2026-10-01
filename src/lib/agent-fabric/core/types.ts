@@ -10,6 +10,7 @@ export type SkillId =
   | "bejoby.application_status"
   | "bejoby.consent"
   | "bejoby.employer_lead"
+  | "bejoby.coach"
   | "aif369.discovery"
   | "reporting.daily_digest"
   | "shared.faq_rag"

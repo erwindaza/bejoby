@@ -124,6 +124,36 @@ export async function sendToAddress(to: string, subject: string, html: string): 
 
 // ─── Specific notification helpers ───────────────────────────────────────
 
+export async function notifyEmployerRegistered(employer: {
+  id: string;
+  company_name: string;
+  contact_name: string;
+  email: string;
+  phone?: string;
+  website?: string;
+  industry?: string;
+}) {
+  const reviewUrl = `https://www.bejoby.com/admin/employers/${employer.id}`;
+  await send(
+    `🏢 Nuevo empleador registrado: ${employer.company_name}`,
+    `
+    <div style="font-family:sans-serif;max-width:600px">
+      <h2 style="color:#2563eb">Nuevo empleador en BeJoby</h2>
+      <p style="color:#475569">Un nuevo empleador se registró y requiere revisión manual antes de que sus ofertas sean visibles públicamente.</p>
+      <table style="border-collapse:collapse;width:100%">
+        <tr><td style="padding:6px 12px;color:#666">Empresa</td><td style="padding:6px 12px;font-weight:bold">${employer.company_name}</td></tr>
+        <tr><td style="padding:6px 12px;color:#666">Contacto</td><td style="padding:6px 12px">${employer.contact_name}</td></tr>
+        <tr><td style="padding:6px 12px;color:#666">Email</td><td style="padding:6px 12px"><a href="mailto:${employer.email}">${employer.email}</a></td></tr>
+        <tr><td style="padding:6px 12px;color:#666">Teléfono</td><td style="padding:6px 12px">${employer.phone || "No especificado"}</td></tr>
+        <tr><td style="padding:6px 12px;color:#666">Web</td><td style="padding:6px 12px">${employer.website ? `<a href="${employer.website}">${employer.website}</a>` : "No especificado"}</td></tr>
+        <tr><td style="padding:6px 12px;color:#666">Industria</td><td style="padding:6px 12px">${employer.industry || "No especificada"}</td></tr>
+        <tr><td style="padding:6px 12px;color:#666">ID</td><td style="padding:6px 12px;font-size:12px;color:#999">${employer.id}</td></tr>
+      </table>
+      <p style="margin-top:16px"><a href="${reviewUrl}" style="color:#2563eb">Revisar empleador →</a></p>
+    </div>`,
+  );
+}
+
 export async function notifyJobPosted(job: {
   id: string;
   title: string;
@@ -131,6 +161,7 @@ export async function notifyJobPosted(job: {
   employment_type?: string;
   work_mode?: string;
   employer_id?: string;
+  status?: string;
 }) {
   const url = `https://www.bejoby.com/es/jobs/${job.id}`;
   await send(

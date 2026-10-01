@@ -1,7 +1,7 @@
 # BeJoby — Tasks: Privacy & Consent Module
 
 **Versión:** 0.1
-**Dependencia:** privacy-consent-plan.md
+**Dependencia:** docs/sdds/privacy-consent-plan.md
 **Estado:** 🔄 Awaiting Approval
 **Fecha:** 2026-09-06
 

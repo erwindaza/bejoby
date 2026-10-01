@@ -8,6 +8,7 @@ export const privacyRequestTypeSchema = z.enum([
   "PORTABILITY",
   "BLOCKING",
   "AUTOMATED_DECISION_REVIEW",
+  "CONSENT_WITHDRAWAL",
 ]);
 
 export const privacyRequestStatusSchema = z.enum([

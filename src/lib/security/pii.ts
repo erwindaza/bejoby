@@ -30,6 +30,11 @@ export interface ApplicationPIIInput {
   expected_monthly_rate?: string;
 }
 
+export interface UserPIIInput {
+  name?: string;
+  email: string;
+}
+
 function sanitizeText(value: string, maxLength: number): string {
   return value.replace(/\0/g, "").trim().slice(0, maxLength);
 }
@@ -234,5 +239,41 @@ export function buildEmployerSafeApplicationView(id: string, data: Record<string
       recommendation: aiAnalysis.recommendation ?? "",
       analyzed_at: aiAnalysis.analyzed_at ?? null,
     } : null,
+  };
+}
+
+export function encryptUserPII(input: UserPIIInput) {
+  return {
+    name: encryptString(sanitizeText(input.name || "", 200)),
+    email: encryptString(sanitizeText(input.email, 320).toLowerCase()),
+  };
+}
+
+export function decryptUserPII(data: Record<string, unknown>) {
+  const pii = (data.pii as Record<string, unknown> | undefined) || {};
+  return {
+    ...data,
+    name: decryptString(pii.name ?? data.name),
+    email: decryptString(pii.email ?? data.email),
+  };
+}
+
+export function buildEncryptedUserRecord(input: UserPIIInput) {
+  return {
+    pii_encrypted: true,
+    email_hash: hashForLookup(input.email),
+    pii: encryptUserPII(input),
+  };
+}
+
+export function redactUserRecord(id: string, data: Record<string, unknown>) {
+  const hydrated = decryptUserPII(data) as Record<string, unknown>;
+  return {
+    id,
+    email_masked: maskEmail(String(hydrated.email || "")),
+    name_masked: maskName(String(hydrated.name || "")),
+    pii_encrypted: hydrated.pii_encrypted === true,
+    created_at: hydrated.created_at || null,
+    updated_at: hydrated.updated_at || null,
   };
 }

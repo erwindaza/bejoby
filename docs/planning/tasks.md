@@ -1,7 +1,7 @@
 # BeJoby — Tasks: Application & Publication History
 
 **Versión:** 0.2
-**Dependencia:** plan.md (aprobado)
+**Dependencia:** docs/planning/plan.md (aprobado)
 **Estado:** ✅ Aprobado — MVP en construcción (Sprints 1-5 completos)
 **Fecha:** 2026-09-04
 

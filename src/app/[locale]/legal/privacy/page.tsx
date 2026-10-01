@@ -14,7 +14,7 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
       <article className="max-w-3xl mx-auto prose prose-invert prose-purple">
         <h1>{isEs ? "Política de Privacidad" : "Privacy Policy"}</h1>
         <p className="text-sm text-gray-400">
-          {isEs ? "Última actualización: marzo 2026" : "Last updated: March 2026"}
+          {isEs ? "Última actualización: septiembre 2026" : "Last updated: September 2026"}
         </p>
 
         <h2>{isEs ? "1. Responsable del tratamiento" : "1. Data Controller"}</h2>
@@ -27,6 +27,12 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
         <h2>{isEs ? "2. Datos que recopilamos" : "2. Data We Collect"}</h2>
         <p>{isEs ? "Recopilamos los siguientes datos personales:" : "We collect the following personal data:"}</p>
         <ul>
+          <li>
+            <strong>{isEs ? "Usuarios del coach:" : "Coach users:"}</strong>{" "}
+            {isEs
+              ? "Email, nombre opcional y preferencias de mejora (stacks o habilidades que quieres desarrollar)."
+              : "Email, optional name, and improvement preferences (stacks or skills you want to develop)."}
+          </li>
           <li>
             <strong>{isEs ? "Candidatos:" : "Candidates:"}</strong>{" "}
             {isEs
@@ -62,35 +68,69 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
           <li>{isEs ? "Comunicarnos contigo sobre tu cuenta y los servicios." : "Communicate with you about your account and services."}</li>
         </ul>
 
-        <h2>{isEs ? "4. Base legal" : "4. Legal Basis"}</h2>
+        <h2>{isEs ? "4. Coach Laboral con IA" : "4. AI Career Coach"}</h2>
+        <p>
+          {isEs
+            ? "El Coach Laboral de BeJoby te orienta con contenido gratuito verificado de aif369.com. Al usar el coach:"
+            : "BeJoby's Career Coach guides you with free verified content from aif369.com. When using the coach:"}
+        </p>
+        <ul>
+          <li>
+            {isEs
+              ? "No almacenamos el contenido de tus conversaciones en nuestros servidores."
+              : "We do not store the content of your conversations on our servers."}
+          </li>
+          <li>
+            {isEs
+              ? "No usamos tus conversaciones para entrenar modelos de inteligencia artificial."
+              : "We do not use your conversations to train artificial intelligence models."}
+          </li>
+          <li>
+            {isEs
+              ? "Tu pregunta puede ser enviada a Google Gemini para generar una respuesta. Gemini puede retener el prompt según sus términos de servicio."
+              : "Your question may be sent to Google Gemini to generate a response. Gemini may retain the prompt according to its terms of service."}
+          </li>
+          <li>
+            {isEs
+              ? "El coach no toma decisiones vinculantes (contratación, admisión, etc.); solo orienta y sugiere recursos gratuitos."
+              : "The coach does not make binding decisions (hiring, admission, etc.); it only guides and suggests free resources."}
+          </li>
+          <li>
+            {isEs
+              ? "Nunca te pediremos datos de salud, financieros, contraseñas ni información sensible de alta criticidad."
+              : "We will never ask for health, financial, password, or highly sensitive information."}
+          </li>
+        </ul>
+
+        <h2>{isEs ? "5. Base legal" : "5. Legal Basis"}</h2>
         <p>
           {isEs
             ? "El tratamiento de tus datos se basa en tu consentimiento explícito, otorgado al registrarte o postular. Puedes retirar tu consentimiento en cualquier momento contactándonos."
             : "The processing of your data is based on your explicit consent, given when registering or applying. You can withdraw your consent at any time by contacting us."}
         </p>
 
-        <h2>{isEs ? "5. Compartición de datos" : "5. Data Sharing"}</h2>
+        <h2>{isEs ? "6. Compartición de datos" : "6. Data Sharing"}</h2>
         <p>
           {isEs
             ? "Cuando un candidato postula a una oferta laboral y otorga su consentimiento expreso, sus datos (nombre, email, CV) serán compartidos con la empresa que publicó la oferta. No vendemos datos personales a terceros."
             : "When a candidate applies to a job and gives explicit consent, their data (name, email, CV) will be shared with the company that posted the job. We do not sell personal data to third parties."}
         </p>
 
-        <h2>{isEs ? "6. Almacenamiento y seguridad" : "6. Storage and Security"}</h2>
+        <h2>{isEs ? "7. Almacenamiento y seguridad" : "7. Storage and Security"}</h2>
         <p>
           {isEs
             ? "Los datos se almacenan en servidores de Google Cloud Platform (GCP) en Estados Unidos, con cifrado en tránsito y en reposo. Implementamos medidas técnicas y organizativas para proteger tus datos."
             : "Data is stored on Google Cloud Platform (GCP) servers in the United States, with encryption in transit and at rest. We implement technical and organizational measures to protect your data."}
         </p>
 
-        <h2>{isEs ? "7. Generación de CV con IA" : "7. AI CV Generation"}</h2>
+        <h2>{isEs ? "8. Generación de CV con IA" : "8. AI CV Generation"}</h2>
         <p>
           {isEs
             ? "Cuando utilizas nuestro generador de CV Harvard, el texto de tu CV es enviado a Google Gemini para su procesamiento. El texto procesado no se almacena de forma permanente en nuestros servidores después de la generación."
             : "When you use our Harvard CV generator, your CV text is sent to Google Gemini for processing. The processed text is not permanently stored on our servers after generation."}
         </p>
 
-        <h2>{isEs ? "8. Tus derechos" : "8. Your Rights"}</h2>
+        <h2>{isEs ? "9. Tus derechos" : "9. Your Rights"}</h2>
         <p>{isEs ? "Tienes derecho a:" : "You have the right to:"}</p>
         <ul>
           <li>{isEs ? "Acceder a tus datos personales." : "Access your personal data."}</li>
@@ -101,14 +141,14 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
           <li>{isEs ? "Oponerte al tratamiento." : "Object to processing."}</li>
         </ul>
 
-        <h2>{isEs ? "9. Retención de datos" : "9. Data Retention"}</h2>
+        <h2>{isEs ? "10. Retención de datos" : "10. Data Retention"}</h2>
         <p>
           {isEs
             ? "Conservamos tus datos mientras tu cuenta esté activa o mientras sea necesario para prestarte servicios. Puedes solicitar la eliminación en cualquier momento."
             : "We retain your data while your account is active or as necessary to provide services. You can request deletion at any time."}
         </p>
 
-        <h2>{isEs ? "10. Contacto" : "10. Contact"}</h2>
+        <h2>{isEs ? "11. Contacto" : "11. Contact"}</h2>
         <p>
           {isEs
             ? "Para ejercer tus derechos o consultas sobre privacidad:"
@@ -122,14 +162,14 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
           </Link>.
         </p>
 
-        <h2>{isEs ? "11. Cookies" : "11. Cookies"}</h2>
+        <h2>{isEs ? "12. Cookies" : "12. Cookies"}</h2>
         <p>
           {isEs
             ? "Utilizamos cookies analíticas de Vercel para medir el rendimiento del sitio. No utilizamos cookies de rastreo publicitario."
             : "We use Vercel analytics cookies to measure site performance. We do not use advertising tracking cookies."}
         </p>
 
-        <h2>{isEs ? "12. Cambios a esta política" : "12. Changes to This Policy"}</h2>
+        <h2>{isEs ? "13. Cambios a esta política" : "13. Changes to This Policy"}</h2>
         <p>
           {isEs
             ? "Nos reservamos el derecho de actualizar esta política. Los cambios serán publicados en esta página con la fecha de actualización."

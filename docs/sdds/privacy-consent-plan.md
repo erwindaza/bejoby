@@ -1,7 +1,7 @@
 # BeJoby — Plan Técnico: Privacy & Consent Module
 
 **Versión:** 0.1
-**Dependencia:** privacy-consent-spec.md (pendiente de aprobación)
+**Dependencia:** docs/sdds/privacy-consent-spec.md (pendiente de aprobación)
 **Fecha:** 2026-09-06
 
 ---
@@ -250,4 +250,4 @@ src/app/[locale]/privacy/page.tsx              # Ya existe (src/app/[locale]/leg
 - [ ] Confirmar si Gemini/Vertex AI tiene DPA vigente (pregunta #4 de spec)
 - [ ] Confirmar SLA de resolución de solicitudes ARCO+ (pregunta #10 de spec)
 
-**Próximo paso:** Aprobación → redactar `privacy-consent-tasks.md` con desglose Sprint por Sprint (P0/P1/P2 según spec).
+**Próximo paso:** Aprobación → redactar `docs/sdds/privacy-consent-tasks.md` con desglose Sprint por Sprint (P0/P1/P2 según spec).

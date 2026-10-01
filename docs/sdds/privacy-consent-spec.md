@@ -184,4 +184,4 @@ Candidato crea cuenta
 
 ---
 
-**Próximo paso:** Aprobación del stakeholder (respuestas a las 12 preguntas) → Redactar/revisar `privacy-consent-plan.md`.
+**Próximo paso:** Aprobación del stakeholder (respuestas a las 12 preguntas) → Redactar/revisar `docs/sdds/privacy-consent-plan.md`.

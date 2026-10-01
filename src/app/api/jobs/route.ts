@@ -1,24 +1,23 @@
 // src/app/api/jobs/route.ts
-import { jobs } from "@/lib/gcp/collections";
+import { jobs, employers } from "@/lib/gcp/collections";
 import { createJobSchema } from "@/lib/validators/job";
 import { success, created, error, serverError } from "@/lib/utils/api-response";
 import { FieldValue, Query } from "@google-cloud/firestore";
 import { notifyJobPosted } from "@/lib/email";
 import { getSessionUser } from "@/lib/auth";
 
-// GET /api/jobs — List jobs with optional filters
+// GET /api/jobs — Public job listing (only published jobs)
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const status = searchParams.get("status");
     const language = searchParams.get("language");
     const employer_id = searchParams.get("employer_id");
     const work_mode = searchParams.get("work_mode");
     const employment_type = searchParams.get("employment_type");
 
-    // Build query — avoid composite index requirements by filtering in JS
-    // Only use Firestore where() for single-field filters that don't need orderBy
-    let query: Query = jobs();
+    // Public endpoint: only published jobs are visible.
+    // Employers must use GET /api/employer/job-postings to see their drafts/reviews.
+    let query: Query = jobs().where("status", "==", "published");
 
     if (employer_id) query = query.where("employer_id", "==", employer_id);
 
@@ -27,7 +26,6 @@ export async function GET(req: Request) {
     let data: any[] = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 
     // Client-side filtering (avoids Firestore composite index requirements)
-    if (status) data = data.filter((d) => d.status === status);
     if (language) data = data.filter((d) => d.language === language);
     if (work_mode) data = data.filter((d) => d.work_mode === work_mode);
     if (employment_type) data = data.filter((d) => d.employment_type === employment_type);
@@ -60,17 +58,27 @@ export async function POST(req: Request) {
     }
     if (parsed.data.employer_id !== user.employer_id) return error("Forbidden", 403);
 
+    // Determine visibility based on employer verification status.
+    // Unverified employers can post, but jobs stay under review until BeJoby approves them.
+    const employerDoc = await employers().doc(user.employer_id).get();
+    const employer = employerDoc.data();
+    const isVerified = employer?.verification_status === "verified";
+    const effectiveStatus = isVerified ? parsed.data.status : "pending_review";
+
     const docRef = jobs().doc();
-    await docRef.set({
+    const jobData = {
       ...parsed.data,
+      status: effectiveStatus,
       created_at: FieldValue.serverTimestamp(),
       updated_at: FieldValue.serverTimestamp(),
-    });
+    };
+
+    await docRef.set(jobData);
 
     // Fire-and-forget email notification
-    notifyJobPosted({ id: docRef.id, ...parsed.data }).catch(() => {});
+    notifyJobPosted({ id: docRef.id, ...parsed.data, status: effectiveStatus }).catch(() => {});
 
-    return created({ id: docRef.id, ...parsed.data });
+    return created({ id: docRef.id, ...jobData });
   } catch (err) {
     console.error("[POST /api/jobs]", err);
     return serverError();

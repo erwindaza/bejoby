@@ -189,6 +189,24 @@ export default function HomePage() {
         )}
       </section>
 
+      {/* Coach CTA */}
+      <section className="max-w-3xl mx-auto px-4 py-16 text-center border-t border-slate-800">
+        <h2 className="text-2xl font-bold text-white mb-3">
+          {lang === "es" ? "¿Necesitas orientación laboral?" : "Need career guidance?"}
+        </h2>
+        <p className="text-slate-400 mb-6">
+          {lang === "es"
+            ? "Habla con nuestro Coach Laboral con IA. Te orienta con contenido gratuito verificado de aif369.com."
+            : "Talk to our AI Career Coach. It guides you with free verified content from aif369.com."}
+        </p>
+        <Link
+          href={`/${locale}/coach`}
+          className="inline-block px-8 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl transition"
+        >
+          {lang === "es" ? "Ir al Coach Laboral" : "Go to Career Coach"}
+        </Link>
+      </section>
+
       {/* Employer CTA */}
       <section className="max-w-3xl mx-auto px-4 py-16 text-center">
         <h2 className="text-2xl font-bold text-white mb-3">{l.empTitle}</h2>

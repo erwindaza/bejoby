@@ -1,6 +1,6 @@
 # BeJoby — Codebase Documentation
 
-**Última actualización:** 2026-09-04
+**Última actualización:** 2026-09-30
 **Metodología:** Spec Driven Development (SDD)
 
 ---
@@ -27,15 +27,19 @@
 ### Documentos SDD
 - **AGENTS.md** → Guía operativa para agentes: PoC local BeJoby exportable a GCP
 - **docs/SPEC-001-bejoby-local-poc-gcp.md** → Especificación de producto/arquitectura para la PoC social local
-- **spec.md** → Historias, criterios de éxito, restricciones, preguntas de clarificación
-- **plan.md** → Decisiones técnicas (Firestore schema, API routes, componentes React)
-- **tasks.md** → Desglose en 25 tareas con dependencias (6 sprints)
-- **cv-data-pipeline-sdd.md** → Pipeline CV raw-silver-golden, seguridad GCS, analitica/IA y diagramas Mermaid
-- **data-model-raw-silver-golden.md** → Modelo de datos raw/silver/golden, dbt, Databricks y gobernanza/linaje
-- **bejoby-conversational-agent-sdd.md** → SPEC 01 del agente conversacional WhatsApp/webchat, MCP, RAG, handoff y Lenovo GPU
-- **secrets-and-kms-sdd.md** → Manejo de secretos, credenciales GCP, Secret Manager y Cloud KMS/CMEK
-- **platform-agent-fabric-sdd.md** → SPEC 00 de plataforma Agent Fabric local-first, LLM Gateway, trazabilidad y fallback cloud
-- **agent02-thinkpad-worker-sdd.md** → SPEC 05 del nodo ThinkPad worker/challenger asincrono
+- **docs/planning/spec.md** → Historias, criterios de éxito, restricciones, preguntas de clarificación
+- **docs/planning/plan.md** → Decisiones técnicas (Firestore schema, API routes, componentes React)
+- **docs/planning/tasks.md** → Desglose en 25 tareas con dependencias (6 sprints)
+- **docs/sdds/cv-data-pipeline-sdd.md** → Pipeline CV raw-silver-golden, seguridad GCS, analitica/IA y diagramas Mermaid
+- **docs/sdds/data-model-raw-silver-golden.md** → Modelo de datos raw/silver/golden, dbt, Databricks y gobernanza/linaje
+- **docs/sdds/bejoby-conversational-agent-sdd.md** → SPEC 01 del agente conversacional WhatsApp/webchat, MCP, RAG, handoff y Lenovo GPU
+- **docs/sdds/secrets-and-kms-sdd.md** → Manejo de secretos, credenciales GCP, Secret Manager y Cloud KMS/CMEK
+- **docs/sdds/platform-agent-fabric-sdd.md** → SPEC 00 de plataforma Agent Fabric local-first, LLM Gateway, trazabilidad y fallback cloud
+- **docs/sdds/agent02-thinkpad-worker-sdd.md** → SPEC 05 del nodo ThinkPad worker/challenger asincrono
+- **docs/sdds/data-governance-arco-sdd.md** → Gobernanza de datos, encriptación y derechos ARCO
+- **docs/operations/PRODUCTION_ISSUES.md** → Registro de incidentes y lecciones aprendidas
+- **docs/operations/runbooks/whatsapp-setup.md** → Configurar WhatsApp Cloud API para el agente
+- **docs/operations/runbooks/arco-response.md** → Responder solicitudes ARCO
 - **docs/infrastructure/** → Runbooks operativos de agent01/dev01 e infraestructura local-first
 
 ### Convencion Permanente De Especificaciones
@@ -113,6 +117,38 @@ src/
 
 ---
 
+## 💼 Flujo de Publicación de Ofertas (Empleadores)
+
+**Estado:** ✅ Completo y testeado
+
+### Componentes
+- **`/post-job`** — Formulario de 2 pasos: registro de empresa + publicación de oferta.
+- **`POST /api/employers`** — Crea el perfil de empleador (requiere sesión, vincula `employer_id` al usuario, usa el email autenticado).
+- **`POST /api/jobs`** — Crea la oferta asociada al `employer_id` del usuario autenticado.
+- **`GET /api/employer/job-postings`** — Lista publicaciones del empleador con conteo de postulaciones.
+
+### Seguridad y verificación de empresa
+- `POST /api/employers` requiere autenticación y rechaza usuarios que ya tengan un perfil de empleador (409).
+- **Email corporativo obligatorio**: se rechazan dominios de email gratuitos (gmail, hotmail, outlook personal, etc.).
+- El email del empleador siempre se toma del usuario autenticado; cualquier valor enviado en el body se ignora.
+- `POST /api/jobs` verifica que `employer_id` en el body coincida con el del usuario autenticado (403 si no).
+- **Empleadores no verificados** pueden publicar, pero sus ofertas quedan en estado `pending_review` hasta aprobación manual del equipo BeJoby.
+- `GET /api/jobs` es público pero solo devuelve ofertas con `status === "published"`.
+- El equipo BeJoby recibe email de notificación cada vez que un empleador nuevo se registra.
+
+### Panel admin
+- Ruta: `/{locale}/admin/employers`
+- APIs: `GET/POST /api/admin/employers`, `GET/POST /api/admin/jobs`
+- Protegido por `ADMIN_SECRET_TOKEN` en el header `Authorization: Bearer <token>`.
+- Permite verificar/rechazar empleadores y aprobar/rechazar ofertas `pending_review`.
+
+### Tests
+- `src/lib/__tests__/employers-api.test.ts` — 8 tests (auth, duplicados, vinculación, validación, email corporativo).
+- `src/lib/__tests__/jobs-api.test.ts` — 7 tests (auth, aislamiento, validación, pending_review vs published).
+- `src/lib/__tests__/admin-api.test.ts` — 4 tests (auth, listar, actualizar empleadores/ofertas).
+
+---
+
 ## 🧪 Testing Strategy
 
 - **Unit:** Vitest para API routes, helpers (auth, parsing)
@@ -124,9 +160,9 @@ src/
 ## 🚀 Próximos Pasos
 
 ### Inmediato (TODAY)
-- [ ] **Stakeholder aprueba spec.md** (2 HU, criterios, restricciones)
-- [ ] **Responder 12 preguntas de clarificación** en spec.md
-- [ ] **Tech lead revisa plan.md** (schema, APIs, componentes)
+- [ ] **Stakeholder aprueba docs/planning/spec.md** (2 HU, criterios, restricciones)
+- [ ] **Responder 12 preguntas de clarificación** en docs/planning/spec.md
+- [ ] **Tech lead revisa docs/planning/plan.md** (schema, APIs, componentes)
 
 ### Luego (APPROVAL)
 - [ ] Empezar TASK-001: Firestore schema migration
@@ -200,4 +236,4 @@ Feature está LISTO cuando:
 
 **Metodología:** Spec Driven Development (SDD)
 **Framework:** github/spec-kit (MIT)
-**Última revisión:** 2026-09-04
+**Última revisión:** 2026-09-30

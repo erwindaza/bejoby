@@ -39,12 +39,15 @@ npm run dev
 - `src/app/page.tsx`: landing principal.
 - `src/components/BejobyLanding.tsx`: UI del portal, recorrido IA y flujo de CV.
 - `src/app/globals.css`: tokens visuales, fuentes y estilos base.
-- `cv-data-pipeline-sdd.md`: especificación SDD del pipeline de CVs `raw -> silver -> golden` con diagramas Mermaid.
-- `data-model-raw-silver-golden.md`: modelo de datos por capa, incluyendo dbt, Databricks y gobernanza/linaje.
-- `bejoby-conversational-agent-sdd.md`: SPEC 01 del agente conversacional para WhatsApp/webchat, MCP, RAG, handoff y Lenovo GPU.
-- `secrets-and-kms-sdd.md`: especificación para secretos, credenciales GCP, Secret Manager y Cloud KMS/CMEK.
-- `platform-agent-fabric-sdd.md`: SPEC 00 de plataforma Agent Fabric local-first, LLM Gateway, trazabilidad y fallback cloud.
-- `agent02-thinkpad-worker-sdd.md`: SPEC 05 del nodo ThinkPad worker/challenger asincrónico.
+- `docs/sdds/cv-data-pipeline-sdd.md`: especificación SDD del pipeline de CVs `raw -> silver -> golden` con diagramas Mermaid.
+- `docs/sdds/data-model-raw-silver-golden.md`: modelo de datos por capa, incluyendo dbt, Databricks y gobernanza/linaje.
+- `docs/sdds/bejoby-conversational-agent-sdd.md`: SPEC 01 del agente conversacional para WhatsApp/webchat, MCP, RAG, handoff y Lenovo GPU.
+- `docs/sdds/secrets-and-kms-sdd.md`: especificación para secretos, credenciales GCP, Secret Manager y Cloud KMS/CMEK.
+- `docs/sdds/platform-agent-fabric-sdd.md`: SPEC 00 de plataforma Agent Fabric local-first, LLM Gateway, trazabilidad y fallback cloud.
+- `docs/sdds/agent02-thinkpad-worker-sdd.md`: SPEC 05 del nodo ThinkPad worker/challenger asincrónico.
+- `docs/sdds/data-governance-arco-sdd.md`: gobernanza de datos, encriptación y derechos ARCO.
+- `docs/planning/spec.md`, `plan.md`, `tasks.md`: historias, decisiones técnicas y desglose de tareas.
+- `docs/operations/PRODUCTION_ISSUES.md`: registro de incidentes y lecciones aprendidas.
 - `docs/infrastructure/`: runbooks y documentación operativa de infraestructura local-first.
 - `docs/SPEC-001-bejoby-local-poc-gcp.md`: especificación de la PoC local BeJoby exportable a GCP.
 
